@@ -2,49 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Projector-friendly base: 18px body text. */
+/* Type scale: body 16 / meta 13-14 / card title 17-18 / h3 20 / h2 28 / page title 32 / hero <= 48. */
 html {
-  font-size: 18px;
+  font-size: 16px;
   scroll-behavior: smooth;
-  scroll-padding-top: 88px;
+  scroll-padding-top: 80px;
   background: #0B1B3A;
 }
 body {
   @apply bg-navy text-ink font-body antialiased;
   line-height: 1.6;
 }
-h1, h2, h3, h4 { @apply font-heading; }
+h1, h2, h3, h4 {
+  @apply font-heading;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+/* All numbers line up. */
+.num, table, .tabular { font-variant-numeric: tabular-nums; }
 
 @layer components {
   /* Glass card: translucent navy panel, light border, blur. */
   .glass {
     background: rgba(17, 38, 80, 0.55);
-    border: 1px solid rgba(245, 247, 251, 0.12);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    @apply rounded-2.5xl shadow-glass;
+    border: 1px solid rgba(245, 247, 251, 0.1);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    @apply rounded-2xl shadow-glass;
   }
+  /* Plain dashboard card (no blur, readable on plain navy). */
+  .card { @apply rounded-2xl border border-ink/10 bg-navy-800/60; }
+
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-4 font-heading font-semibold text-lg
-      transition-[transform,box-shadow,background-color] duration-200 select-none
-      focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-saffron/60
-      disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-heading text-[15px] font-semibold
+      transition-[transform,box-shadow,background-color,border-color,color] duration-200 select-none
+      focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-saffron/50
+      disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary { @apply btn bg-saffron text-navy hover:shadow-glow; }
-  .btn-secondary { @apply btn border-2 border-ink/30 text-ink hover:border-saffron hover:text-saffron bg-navy/30; }
-  .section-title { @apply text-[2.25rem] md:text-5xl font-bold leading-tight tracking-tight; }
-  .kicker { @apply uppercase tracking-[0.2em] text-saffron font-semibold text-sm; }
+  .btn-secondary { @apply btn border border-ink/25 bg-navy/30 text-ink hover:border-saffron hover:text-saffron; }
+  .btn-ghost { @apply btn px-3 text-ink/80 hover:bg-ink/5 hover:text-ink; }
+  .btn-sm { @apply px-3.5 py-1.5 text-sm; }
+
+  .page-title { @apply font-heading text-[32px] font-bold; }
+  .section-title { @apply font-heading text-[28px] font-bold; }
+  .h3 { @apply font-heading text-xl font-semibold; }
+  .card-title { @apply font-heading text-[17px] font-semibold; }
+  .kicker { @apply text-[13px] font-semibold uppercase tracking-[0.14em] text-saffron; }
+  .meta { @apply text-[13px] text-ink/65; }
+
+  .input {
+    @apply w-full rounded-xl border border-ink/15 bg-navy-950/60 px-3.5 py-2.5 text-[15px] text-ink placeholder:text-ink/40
+      transition-colors focus:border-saffron focus:outline-none focus:ring-2 focus:ring-saffron/30;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-ink/85; }
+
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[13px] font-medium; }
+
   /* Skeleton shimmer used instead of spinners. */
   .skeleton {
-    background: linear-gradient(90deg, rgba(245,247,251,0.06) 25%, rgba(245,247,251,0.14) 50%, rgba(245,247,251,0.06) 75%);
+    background: linear-gradient(90deg, rgba(245,247,251,0.05) 25%, rgba(245,247,251,0.12) 50%, rgba(245,247,251,0.05) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
-    @apply rounded-xl;
+    @apply rounded-lg;
   }
 }
 
 /* Visible keyboard focus everywhere. */
-:focus-visible { outline: 3px solid #FF9933; outline-offset: 3px; }
+:focus-visible { outline: 2px solid #FF9933; outline-offset: 3px; }
 
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
@@ -59,7 +84,6 @@ h1, h2, h3, h4 { @apply font-heading; }
   position: absolute; border-radius: 9999px; background: #FF9933;
   animation: floaty var(--d, 14s) linear infinite; will-change: transform, opacity;
 }
-/* Slow gradient shift on the hero overlay. */
 @keyframes hueShift { 0%,100% { opacity: 0.55; } 50% { opacity: 0.8; } }
 .glow-shift { animation: hueShift 12s ease-in-out infinite; }
 

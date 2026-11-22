@@ -1,43 +1,31 @@
-import { motion } from 'framer-motion';
-import { BridgeLogo, ShieldIcon, TrashIcon } from './Icons';
-import { pressable } from './motion';
+import { BridgeLogo, ShieldIcon } from './Icons';
 
-// Edit this list with your team's names.
-const TEAM = ['Team KaamSetu'];
+const TEAM = ['Ayushman Singh Shekhawat', 'Paarth Singh', 'Vinayak', 'Tanush Goyal'];
 
-export default function Footer({ onDelete }: { onDelete: () => void }) {
+export default function Footer() {
   return (
-    <footer id="privacy" className="mt-24 border-t border-ink/10 bg-navy-950/60">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr] md:px-8">
+    <footer id="privacy" className="mt-16 border-t border-ink/10 bg-navy-950/60">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr]">
         <div>
-          <div className="mb-4 flex items-center gap-3">
-            <BridgeLogo />
-            <span className="font-heading text-xl font-bold">
+          <div className="mb-3 flex items-center gap-2.5">
+            <BridgeLogo width={34} height={24} />
+            <span className="font-heading text-lg font-bold">
               Kaam<span className="text-saffron">Setu</span>
             </span>
           </div>
-          <p className="flex max-w-xl items-start gap-3 text-ink/80">
-            <ShieldIcon className="mt-1 shrink-0 text-teal" />
+          <p className="flex max-w-prose items-start gap-2.5 text-[15px] text-ink/75">
+            <ShieldIcon className="mt-0.5 shrink-0 text-teal" width={18} height={18} />
             <span>
-              Privacy first: your resume is processed in memory only and never stored. Results and proof screenshots
-              auto-delete after the session ends — or delete them yourself any time.
+              Privacy first: your resume file and its raw text are processed in memory and never stored. Companies only
+              see an anonymous, verified profile, and only if you switch visibility on.
             </span>
           </p>
-          <motion.button
-            {...pressable}
-            onClick={onDelete}
-            className="btn mt-6 border-2 border-ink/30 !py-3 text-ink hover:border-miss hover:text-miss"
-          >
-            <TrashIcon /> Delete my data
-          </motion.button>
         </div>
         <div className="md:text-right">
           <p className="kicker mb-2">Built by</p>
-          <p className="text-lg">{TEAM.join(' · ')}</p>
-          <p className="mt-6 text-ink/75">Built for Engineering for Social Empowerment</p>
-          <p className="mt-2 text-base text-ink/60">
-            Skill trends come from today&apos;s live listings — a signal, not a guarantee.
-          </p>
+          <p className="text-[15px]">{TEAM.join(' · ')}</p>
+          <p className="mt-4 text-sm text-ink/70">Built for Engineering for Social Empowerment</p>
+          <p className="meta mt-1">Skill trends come from today&apos;s live listings: a signal, not a guarantee.</p>
         </div>
       </div>
     </footer>

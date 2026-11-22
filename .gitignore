@@ -20,3 +20,6 @@ tmp-shots
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+
+# local scratch scripts
+scripts/tmp-*

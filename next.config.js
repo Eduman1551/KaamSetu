@@ -6,7 +6,7 @@ const nextConfig = {
   serverExternalPackages: ['playwright', 'playwright-core', 'pdf-parse'],
   images: {
     // Screenshots are served by our own API route.
-    localPatterns: [{ pathname: '/api/shot/**' }, { pathname: '/demo-shots/**' }, { pathname: '/bg.jpg' }],
+    localPatterns: [{ pathname: '/api/student/shot/**' }, { pathname: '/bg.jpg' }],
   },
 };
 module.exports = nextConfig;

@@ -9,18 +9,24 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "compress-bg": "tsx scripts/compress-bg.ts",
-    "make-demo": "tsx --env-file=.env.local scripts/make-demo.ts",
     "sample-resume": "tsx scripts/make-sample-resume.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "~0.45.4",
     "formidable": "^3.5.4",
     "framer-motion": "^12.43.0",
     "groq-sdk": "^1.6.0",
     "next": "15.5.29",
+    "next-auth": "~4.24.15",
     "pdf-parse": "1.1.1",
     "playwright": "^1.65.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "recharts": "^2.15.4",
+    "swr": "^2.5.1",
+    "ws": "^8.23.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -29,11 +35,14 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
     "autoprefixer": "^10.7.0",
+    "drizzle-kit": "~0.31.11",
     "postcss": "^8.5.33",
     "sharp": "^0.35.5",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }

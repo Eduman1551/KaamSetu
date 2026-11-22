@@ -73,7 +73,7 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
-        className={`glass flex min-h-[300px] flex-col ${file ? '' : 'cursor-pointer'} items-center justify-center gap-4 border-2 border-dashed px-6 py-12 text-center transition-[border-color,box-shadow,background-color] duration-200 ${border} ${
+        className={`card flex min-h-[240px] flex-col ${file ? '' : 'cursor-pointer'} items-center justify-center gap-3 border-2 border-dashed px-6 py-10 text-center transition-[border-color,box-shadow,background-color] duration-200 ${border} ${
           dragOver ? 'bg-saffron/10' : ''
         }`}
       >
@@ -97,18 +97,18 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.25 }}
-              className="flex w-full max-w-lg items-center gap-4 rounded-2xl border border-teal/40 bg-teal/10 px-5 py-4 text-left"
+              className="flex w-full max-w-lg items-center gap-3 rounded-xl border border-teal/40 bg-teal/10 px-4 py-3 text-left"
             >
-              <FileIcon className="shrink-0 text-teal" width={36} height={36} />
+              <FileIcon className="shrink-0 text-teal" width={28} height={28} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold" title={file.name}>
                   {file.name}
                 </p>
-                <p className="text-ink/70">{prettySize(file.size)} · ready to analyse</p>
+                <p className="meta">{prettySize(file.size)} · ready to analyse</p>
               </div>
               <button
                 onClick={() => onFile(null)}
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-ink/80 transition-colors hover:bg-ink/10 hover:text-miss"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink/80 transition-colors hover:bg-ink/10 hover:text-miss"
                 aria-label="Remove selected file"
               >
                 <XIcon />
@@ -124,14 +124,14 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
               className="flex flex-col items-center gap-4"
             >
               <div
-                className={`grid h-20 w-20 place-items-center rounded-full bg-saffron/15 text-saffron ${dragOver ? '' : 'pulse-soft'}`}
+                className={`grid h-14 w-14 place-items-center rounded-full bg-saffron/15 text-saffron ${dragOver ? '' : 'pulse-soft'}`}
               >
-                <UploadIcon width={40} height={40} />
+                <UploadIcon width={28} height={28} />
               </div>
-              <p className="font-heading text-2xl font-semibold">
+              <p className="font-heading text-lg font-semibold">
                 {dragOver ? 'Drop it here' : 'Drag your resume PDF here'}
               </p>
-              <p className="text-ink/70">
+              <p className="text-sm text-ink/70">
                 or <span className="font-semibold text-saffron underline underline-offset-4">browse files</span> · PDF, up
                 to 5 MB
               </p>
@@ -147,19 +147,19 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-4 flex items-start gap-3 rounded-2xl border border-miss/40 bg-miss/10 px-5 py-3 text-ink"
+            className="mt-3 flex items-start gap-2.5 rounded-xl border border-miss/40 bg-miss/10 px-4 py-2.5 text-[15px] text-ink"
           >
             <WarnIcon className="mt-0.5 shrink-0 text-miss" /> {error}
           </motion.p>
         )}
       </AnimatePresence>
 
-      <p className="mt-5 flex items-center justify-center gap-2 text-center text-ink/75">
-        <ShieldIcon className="shrink-0 text-teal" /> Your resume is processed in memory and never stored.
+      <p className="mt-4 flex items-center justify-center gap-2 text-center text-sm text-ink/75">
+        <ShieldIcon className="shrink-0 text-teal" width={16} height={16} /> Your resume file and raw text are processed in memory and never stored.
       </p>
 
-      <div className="mt-8 flex justify-center">
-        <motion.button {...pressable} onClick={onAnalyse} disabled={!file} className="btn-primary min-w-[280px] text-xl">
+      <div className="mt-6 flex justify-center">
+        <motion.button {...pressable} onClick={onAnalyse} disabled={!file} className="btn-primary min-w-[220px] px-6 py-3">
           Analyse my resume
         </motion.button>
       </div>

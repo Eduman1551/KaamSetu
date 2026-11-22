@@ -42,7 +42,7 @@ function Lightbox({ card, onClose }: { card: ProofCardData; onClose: () => void 
         <button
           ref={closeRef}
           onClick={onClose}
-          className="absolute -top-14 right-0 grid h-12 w-12 place-items-center rounded-xl bg-ink/10 text-ink hover:bg-ink/20"
+          className="absolute -top-12 right-0 grid h-10 w-10 place-items-center rounded-lg bg-ink/10 text-ink hover:bg-ink/20"
           aria-label="Close screenshot"
         >
           <XIcon />
@@ -55,7 +55,7 @@ function Lightbox({ card, onClose }: { card: ProofCardData; onClose: () => void 
           unoptimized
           className="h-auto w-full rounded-2xl border border-ink/15 bg-ink shadow-glass"
         />
-        <p className="mt-4 text-center text-ink/80">
+        <p className="meta mt-3 text-center">
           {card.company} · {card.jobTitle} · scanned {formatDate(card.scannedAt)}
         </p>
       </motion.div>
@@ -73,7 +73,7 @@ export default function ProofCard({ card }: { card: ProofCardData }) {
   const hasShot = !!card.shotUrl && !imgFailed;
 
   return (
-    <motion.article variants={fadeUp} whileHover={{ y: -4 }} className="glass flex flex-col overflow-hidden">
+    <motion.article variants={fadeUp} whileHover={{ y: -4 }} className="card flex flex-col overflow-hidden">
       {/* Media area: same aspect ratio for screenshot and fallback, so nothing jumps. */}
       <div className="relative aspect-[900/420] w-full overflow-hidden border-b border-ink/10 bg-navy-950">
         {hasShot ? (
@@ -91,43 +91,43 @@ export default function ProofCard({ card }: { card: ProofCardData }) {
               onError={() => setImgFailed(true)}
               className="h-full w-full scale-[1.45] bg-ink object-cover object-center transition-transform duration-500 group-hover:scale-[1.55]"
             />
-            <span className="absolute bottom-3 right-3 rounded-lg bg-navy/80 px-3 py-1 text-sm text-ink/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="absolute bottom-2 right-2 rounded-md bg-navy/80 px-2 py-0.5 text-[13px] text-ink/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
               Click to enlarge
             </span>
           </button>
         ) : (
-          <div className="flex h-full flex-col justify-center p-5">
-            <span className="absolute right-3 top-3 rounded-md bg-ink/10 px-2 py-0.5 text-sm text-ink/75">
+          <div className="flex h-full flex-col justify-center p-4">
+            <span className="absolute right-2 top-2 rounded-md bg-ink/10 px-2 py-0.5 text-[13px] text-ink/75">
               Screenshot unavailable
             </span>
-            <blockquote className="line-clamp-4 border-l-4 border-saffron pl-4 italic text-ink/90">
+            <blockquote className="line-clamp-4 border-l-4 border-saffron pl-3 text-[15px] italic text-ink/90">
               “{card.sentence}”
             </blockquote>
           </div>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-6">
-        <h3 className="text-2xl font-semibold">{card.skill}</h3>
-        <p className="text-lg">
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="card-title">{card.skill}</h3>
+        <p className="num text-[15px]">
           <span className="font-semibold text-saffron">{card.skill}</span> appears in{' '}
           <span className="font-semibold">
             {card.count} of {card.total}
           </span>{' '}
           listings
         </p>
-        <p className="truncate text-ink/80" title={`${card.company} · ${card.jobTitle}`}>
+        <p className="truncate text-sm text-ink/75" title={`${card.company} · ${card.jobTitle}`}>
           {card.company} · {card.jobTitle}
         </p>
-        <div className="mt-auto flex items-center justify-between gap-3 pt-3 text-ink/70">
-          <span className="text-base">Scanned {formatDate(card.scannedAt)}</span>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-2 text-ink/65">
+          <span className="meta">Scanned {formatDate(card.scannedAt)}</span>
           <a
             href={card.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-semibold text-saffron hover:text-ink"
+            className="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-semibold text-saffron hover:text-ink"
           >
-            View source <ExternalIcon />
+            View source <ExternalIcon width={15} height={15} />
           </a>
         </div>
       </div>

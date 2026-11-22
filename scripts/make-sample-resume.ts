@@ -1,4 +1,4 @@
-// Generates demo/sample-resume.pdf — a fictional fresher resume used for testing
+// Generates scripts/fixtures/sample-resume.pdf, a fictional fresher resume used for testing
 // and for generating the pre-saved demo result. Run: pnpm tsx scripts/make-sample-resume.ts
 import { chromium } from 'playwright';
 import path from 'path';
@@ -54,7 +54,7 @@ async function main() {
   const browser = await chromium.launch();
   const page = await browser.newPage();
   await page.setContent(html);
-  const out = path.join(process.cwd(), 'demo', 'sample-resume.pdf');
+  const out = path.join(process.cwd(), 'scripts', 'fixtures', 'sample-resume.pdf');
   await page.pdf({ path: out, format: 'A4', margin: { top: '16mm', bottom: '16mm', left: '16mm', right: '16mm' } });
   await browser.close();
   console.log('Wrote', out);

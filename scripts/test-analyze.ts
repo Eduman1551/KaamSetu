@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 async function main() {
-  const file = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'demo/sample-resume.pdf';
+  const file = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'scripts/fixtures/sample-resume.pdf';
   const outIdx = process.argv.indexOf('--out');
   const out = outIdx > 0 ? process.argv[outIdx + 1] : null;
   const base = process.env.BASE_URL || 'http://localhost:3000';
