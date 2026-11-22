@@ -61,18 +61,19 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
   return (
     <div className="mx-auto max-w-3xl">
       <div
-        role="button"
-        tabIndex={0}
-        aria-label="Upload your resume PDF. Click or drop a file here."
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={onKey}
+        // Acts as a button only while empty (so the "remove" button isn't nested inside another button).
+        role={file ? undefined : 'button'}
+        tabIndex={file ? undefined : 0}
+        aria-label={file ? undefined : 'Upload your resume PDF. Click or drop a file here.'}
+        onClick={() => !file && inputRef.current?.click()}
+        onKeyDown={file ? undefined : onKey}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
-        className={`glass flex min-h-[300px] cursor-pointer flex-col items-center justify-center gap-4 border-2 border-dashed px-6 py-12 text-center transition-[border-color,box-shadow,background-color] duration-200 ${border} ${
+        className={`glass flex min-h-[300px] flex-col ${file ? '' : 'cursor-pointer'} items-center justify-center gap-4 border-2 border-dashed px-6 py-12 text-center transition-[border-color,box-shadow,background-color] duration-200 ${border} ${
           dragOver ? 'bg-saffron/10' : ''
         }`}
       >
@@ -97,7 +98,6 @@ export default function UploadZone({ file, onFile, onAnalyse, error, onError }: 
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.25 }}
               className="flex w-full max-w-lg items-center gap-4 rounded-2xl border border-teal/40 bg-teal/10 px-5 py-4 text-left"
-              onClick={(e) => e.stopPropagation()}
             >
               <FileIcon className="shrink-0 text-teal" width={36} height={36} />
               <div className="min-w-0 flex-1">

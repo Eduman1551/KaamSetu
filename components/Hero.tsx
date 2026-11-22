@@ -78,8 +78,8 @@ export default function Hero({ onUpload, onDemo }: Props) {
         ))}
       </div>
 
-      <div className="mx-auto w-full max-w-7xl px-5 py-16 md:px-8">
-        <motion.p initial="hidden" animate="show" variants={fadeUp} className="kicker mb-5">
+      <div className="mx-auto w-full max-w-7xl px-5 py-10 md:px-8 md:py-12">
+        <motion.p initial="hidden" animate="show" variants={fadeUp} className="kicker mb-4">
           KaamSetu · SkillBridge
         </motion.p>
 
@@ -108,7 +108,7 @@ export default function Hero({ onUpload, onDemo }: Props) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.6 }}
-          className="mt-6 max-w-2xl text-xl text-ink/85 md:text-[1.35rem]"
+          className="mt-5 max-w-2xl text-xl text-ink/85 md:text-[1.35rem]"
         >
           Upload your resume. Our AI reads today&apos;s real job listings in India and shows you exactly what to learn
           next — with proof.
@@ -118,7 +118,7 @@ export default function Hero({ onUpload, onDemo }: Props) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.6 }}
-          className="mt-10 flex flex-col gap-4 sm:flex-row"
+          className="mt-8 flex flex-col gap-4 sm:flex-row"
         >
           <motion.button {...pressable} onClick={onUpload} className="btn-primary">
             <UploadIcon /> Upload my resume
@@ -134,10 +134,10 @@ export default function Hero({ onUpload, onDemo }: Props) {
           whileInView="show"
           viewport={{ once: true }}
           variants={stagger}
-          className="mt-14 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3"
+          className="mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3"
         >
           {counters.map((c) => (
-            <motion.li key={c.label} variants={fadeUp} className="glass px-6 py-5">
+            <motion.li key={c.label} variants={fadeUp} className="glass px-6 py-4">
               <div className="font-heading text-4xl font-bold text-saffron">
                 <CountUp to={c.to} suffix={c.suffix} />
               </div>

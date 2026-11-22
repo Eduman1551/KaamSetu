@@ -85,7 +85,7 @@ export default function Home() {
     setPct(0);
     setElapsed(0);
     setRunError(null);
-    setTimeout(() => scrollToId('analyse'), 50);
+    setTimeout(() => scrollToId('stage'), 50);
 
     const form = new FormData();
     form.append('resume', file);
@@ -157,7 +157,7 @@ export default function Home() {
     setSteps([]);
     setRunError(null);
     setPhase('deleted');
-    setTimeout(() => scrollToId('analyse'), 50);
+    setTimeout(() => scrollToId('stage'), 50);
   }, [result, hadData]);
 
   /** Back to the very start (presenter shortcut "R"). */
@@ -211,6 +211,7 @@ export default function Home() {
             </motion.div>
           )}
 
+          <div id="stage" className="scroll-mt-4">
           <AnimatePresence mode="wait">
             {phase === 'idle' && (
               <motion.div key="upload" {...fade}>
@@ -254,6 +255,7 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </section>
       </main>
 

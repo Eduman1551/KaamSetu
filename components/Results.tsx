@@ -129,11 +129,11 @@ function SkillCard({ s, total, defaultOpen }: { s: SkillToAdd; total: number; de
             <ul className="space-y-3 border-t border-ink/10 px-6 pb-6 pt-4">
               {s.courses.length === 0 && <li className="text-ink/70">No verified course link found in today&apos;s search.</li>}
               {s.courses.map((c) => (
-                <li key={c.url} className="flex items-center gap-4 rounded-2xl bg-navy-950/40 p-3 pr-4">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-saffron/15 font-heading text-xl font-bold text-saffron" aria-hidden>
+                <li key={c.url} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-navy-950/40 p-3 pr-4 sm:flex-nowrap">
+                  <span className="hidden h-12 w-12 shrink-0 place-items-center rounded-xl bg-saffron/15 font-heading text-xl font-bold text-saffron sm:grid" aria-hidden>
                     {c.platform.charAt(0).toUpperCase()}
                   </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                     <p className="line-clamp-2 font-semibold leading-snug" title={c.title}>
                       {c.title}
                     </p>
@@ -143,7 +143,7 @@ function SkillCard({ s, total, defaultOpen }: { s: SkillToAdd; total: number; de
                     </p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-lg px-2.5 py-0.5 text-sm font-semibold ${
+                    className={`ml-auto shrink-0 rounded-lg px-2.5 py-0.5 text-sm font-semibold sm:ml-0 ${
                       c.free ? 'bg-teal/20 text-teal' : 'bg-ink/10 text-ink/70'
                     }`}
                   >
