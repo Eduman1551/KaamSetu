@@ -1,31 +1,219 @@
 {
   "sessionId": "demo",
   "demo": true,
-  "generatedAt": "2026-11-22T12:00:00.000Z",
-  "targetRoles": ["Data Analyst", "Business Analyst"],
-  "educationLevel": "B.Tech (final year)",
-  "overallScore": 64,
-  "subScores": { "skillsMatch": 58, "atsReadability": 80, "impact": 55, "structure": 70 },
-  "summary": "PLACEHOLDER mock data — replaced by a real run in the demo-mode milestone.",
+  "generatedAt": "2026-11-22T13:19:35.274Z",
+  "targetRoles": [
+    "Data Analyst",
+    "Software Developer"
+  ],
+  "educationLevel": "B.E. Computer Engineering (final year)",
+  "overallScore": 62,
+  "subScores": {
+    "skillsMatch": 33,
+    "atsReadability": 100,
+    "impact": 60,
+    "structure": 85
+  },
+  "summary": "You have solid Excel and Python experience, but need to highlight SQL, Power BI, and Tableau to match data analyst roles.",
   "strengths": [
-    { "skill": "Python", "count": 14 },
-    { "skill": "Excel", "count": 12 },
-    { "skill": "Communication", "count": 9 }
+    {
+      "skill": "Excel",
+      "count": 12
+    },
+    {
+      "skill": "Communication",
+      "count": 5
+    },
+    {
+      "skill": "Python",
+      "count": 5
+    },
+    {
+      "skill": "Problem Solving",
+      "count": 4
+    },
+    {
+      "skill": "Data Entry",
+      "count": 2
+    },
+    {
+      "skill": "Java",
+      "count": 2
+    },
+    {
+      "skill": "JavaScript",
+      "count": 2
+    }
   ],
   "skillsToAdd": [
-    { "skill": "SQL", "count": 17, "courses": [
-      { "title": "Placeholder course A", "platform": "Coursera", "url": "https://www.coursera.org", "free": true, "hours": 10 },
-      { "title": "Placeholder course B", "platform": "Udemy", "url": "https://www.udemy.com", "free": false, "hours": null }
-    ] },
-    { "skill": "Power BI", "count": 11, "courses": [] }
+    {
+      "skill": "SQL",
+      "count": 12,
+      "courses": [
+        {
+          "title": "Free SQL Course with Certificate",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/free-online-course-to-learn-sql-basics-skillup",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Free Oracle SQL Course With Certificate For Beginners (2026)",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/oracle-sql",
+          "free": true,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Power BI",
+      "count": 11,
+      "courses": [
+        {
+          "title": "Free Power BI Course With Certificate For Beginners",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/data-visualization-with-power-bi",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Microsoft Power BI for Data Analysis (Free Course)",
+          "platform": "Udemy",
+          "url": "https://www.udemy.com/course/microsoft-power-bi-for-data-analysis-free-course",
+          "free": true,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Data Analysis",
+      "count": 9,
+      "courses": [
+        {
+          "title": "Learn Data Analytics Using Excel | Free Excel Course",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/data-analytics-using-excel",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Introduction to Data Analytics",
+          "platform": "Coursera",
+          "url": "https://www.coursera.org/learn/introduction-to-data-analytics",
+          "free": false,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Tableau",
+      "count": 7,
+      "courses": [
+        {
+          "title": "Free Tableau Course with Certificate (2026)",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/tableau-for-beginners",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Free Tableau Course with Certificate",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/free-tableau-course-skillup",
+          "free": true,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Google Sheets",
+      "count": 5,
+      "courses": [
+        {
+          "title": "Free Google Sheets Course: Spreadsheet Proficiency",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/free-google-sheets-course-skillup",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Free Google Sheets Course with ChatGPT (2026)",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/automate-google-sheets-tasks-using-chatgpt",
+          "free": true,
+          "hours": null
+        }
+      ]
+    }
   ],
   "atsTips": [
-    { "text": "Email and phone number found", "pass": true },
-    { "text": "Add a Projects section", "pass": false }
+    {
+      "pass": false,
+      "text": "Quantify impact in projects with percentages"
+    },
+    {
+      "pass": false,
+      "text": "Use bullet points for each skill in resume"
+    },
+    {
+      "pass": true,
+      "text": "Email and phone number are easy to find."
+    },
+    {
+      "pass": true,
+      "text": "All key sections found: Education, Skills, Projects, Experience."
+    },
+    {
+      "pass": true,
+      "text": "Single-column text that ATS software can read in order."
+    }
   ],
   "proofCards": [
-    { "skill": "SQL", "count": 17, "total": 20, "missing": true, "company": "Placeholder Co", "jobTitle": "Data Analyst", "url": "https://example.com", "scannedAt": "2026-11-22T12:00:00.000Z", "shotUrl": null, "sentence": "Placeholder sentence mentioning SQL." }
+    {
+      "skill": "Excel",
+      "count": 12,
+      "total": 20,
+      "missing": false,
+      "scannedAt": "2026-11-22T13:19:29.194Z",
+      "company": "IPNIA",
+      "jobTitle": "Data Analyst",
+      "url": "https://hiredoor.in/jobs/data-analyst-c9144e",
+      "sentence": "Strong knowledge of Excel or Google Sheets.",
+      "shotUrl": "/api/shot/demo-1"
+    },
+    {
+      "skill": "SQL",
+      "count": 12,
+      "total": 20,
+      "missing": true,
+      "scannedAt": "2026-11-22T13:19:29.194Z",
+      "company": "MHTECHIN",
+      "jobTitle": "Junior Data & Analytics Associate",
+      "url": "https://hiredoor.in/jobs/junior-data-analytics-associate-1f1a59",
+      "sentence": "Analyse data with Excel and SQL.",
+      "shotUrl": "/api/shot/demo-2"
+    },
+    {
+      "skill": "Power BI",
+      "count": 11,
+      "total": 20,
+      "missing": true,
+      "scannedAt": "2026-11-22T13:19:29.194Z",
+      "company": "Barclays",
+      "jobTitle": "Data Engineer",
+      "url": "https://hiredoor.in/jobs/data-engineer-664f51",
+      "sentence": "Power BI and Tableau for dashboards and visualisations.",
+      "shotUrl": "/api/shot/demo-3"
+    }
   ],
-  "ttlMinutes": 30,
-  "listingsAnalyzed": { "count": 20, "sources": ["example.com"] }
+  "listingsAnalyzed": {
+    "count": 20,
+    "sources": [
+      "hiredoor.in",
+      "shine.com",
+      "internshala.com"
+    ]
+  },
+  "ttlMinutes": 30
 }

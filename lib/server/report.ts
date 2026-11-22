@@ -49,7 +49,7 @@ Return JSON:
 {"impactScore": 0-100, "structureScore": 0-100, "summary": "", "extraAtsTips": [""], "relevance": {"<skill>": 1-3}}
 - impactScore: how well the bullet points show results (numbers, outcomes, strong action verbs).
 - structureScore: clear order, headings, consistent formatting, easy to scan.
-- summary: ONE plain sentence (max 30 words) spoken directly to the student as "you" (never use their name), about where they stand and the single most useful next step. Only mention skills from the list above.
+- summary: ONE plain sentence (max 30 words) spoken directly to the student as "you" (never use their name), about where they stand and the single most useful next step. Only mention skills from the list above; for MISSING skills say "learn" or "add", never "highlight".
 - extraAtsTips: up to 3 short, specific tips (max 14 words each) about the resume DOCUMENT: wording, bullet points, numbers, keywords from the listings, formatting. Not about learning new skills, and never suggest listing a skill the resume does not show. Do not repeat the detected issues.
 - relevance: for each skill in the list, 3 = core to the target role, 2 = useful, 1 = generic.`,
   });

@@ -98,20 +98,45 @@ export default function ProgressBridge({ steps, pct, elapsed, error, onSwitchDem
   }
 
   return (
-    <div className="glass mx-auto max-w-4xl p-6 md:p-10" aria-live="polite">
-      <div className="mb-2 flex items-baseline justify-between gap-4">
-        <h3 className="text-2xl font-semibold md:text-3xl">Building your bridge…</h3>
-        <span className="font-heading text-2xl font-bold tabular-nums text-saffron">{Math.round(pct)}%</span>
+    // Two columns on wide screens (bridge | live steps) so everything fits a 720p projector.
+    <div className="glass mx-auto grid max-w-6xl gap-8 p-6 md:p-10 lg:grid-cols-[1.1fr_1fr] lg:items-center" aria-live="polite">
+      <div>
+        <div className="mb-2 flex items-baseline justify-between gap-4">
+          <h3 className="text-2xl font-semibold md:text-3xl">Building your bridge…</h3>
+          <span className="font-heading text-2xl font-bold tabular-nums text-saffron">{Math.round(pct)}%</span>
+        </div>
+
+        <Bridge pct={pct} />
+
+        {/* thin progress bar */}
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
+          <motion.div className="h-full rounded-full bg-saffron" animate={{ width: `${pct}%` }} transition={{ duration: 0.5 }} />
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-ink/70">
+          <span className="tabular-nums">{elapsed}s elapsed · usually about a minute</span>
+          <AnimatePresence>
+            {elapsed >= DEMO_OFFER_AFTER && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={onSwitchDemo}
+                className="rounded-lg px-2 py-1 font-semibold text-saffron underline underline-offset-4 hover:text-ink"
+              >
+                Taking long? Switch to demo result
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <Bridge pct={pct} />
-
-      {/* thin progress bar */}
-      <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
-        <motion.div className="h-full rounded-full bg-saffron" animate={{ width: `${pct}%` }} transition={{ duration: 0.5 }} />
-      </div>
-
-      <ul className="space-y-3">
+      <ul className="min-h-[260px] space-y-3 lg:border-l lg:border-ink/10 lg:pl-8">
+        {steps.length === 0 && (
+          <li className="space-y-3" aria-hidden>
+            <span className="skeleton block h-5 w-3/4" />
+            <span className="skeleton block h-5 w-1/2" />
+          </li>
+        )}
         <AnimatePresence initial={false}>
           {steps.map((s) => (
             <motion.li
@@ -131,27 +156,11 @@ export default function ProgressBridge({ steps, pct, elapsed, error, onSwitchDem
                 </span>
               )}
               <span className={s.status === 'done' ? 'text-ink/75' : 'font-semibold text-ink'}>{s.label}</span>
-              {s.status === 'active' && <span className="skeleton ml-auto hidden h-3 w-32 sm:block" aria-hidden />}
+              {s.status === 'active' && <span className="skeleton ml-auto hidden h-3 w-16 shrink-0 xl:block" aria-hidden />}
             </motion.li>
           ))}
         </AnimatePresence>
       </ul>
-
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-ink/70">
-        <span className="tabular-nums">{elapsed}s elapsed · usually about a minute</span>
-        <AnimatePresence>
-          {elapsed >= DEMO_OFFER_AFTER && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={onSwitchDemo}
-              className="rounded-lg px-2 py-1 font-semibold text-saffron underline underline-offset-4 hover:text-ink"
-            >
-              Taking long? Switch to demo result
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
     </div>
   );
 }

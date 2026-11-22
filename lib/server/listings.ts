@@ -92,12 +92,25 @@ export async function findListingUrls(roles: string[], want: number): Promise<Ta
 
   // De-duplicate and keep only single-listing URLs.
   const seen = new Set<string>();
+  const perCompany = new Map<string, number>();
   const byDomain = new Map<string, TavilyResult[]>();
   for (const r of ok.flatMap((b) => b.value)) {
-    const key = r.url.replace(/[?#].*$/, '').replace(/\/apply\/?$/, '').replace(/\/$/, '').replace(/^http:/, 'https:');
+    const key = r.url
+      .replace(/[?#].*$/, '')
+      .replace(/\/apply\/?$/, '')
+      .replace(/\/$/, '')
+      .replace(/^http:/, 'https:')
+      .replace('://boards.greenhouse.io', '://job-boards.greenhouse.io');
     if (seen.has(key) || !looksLikeSingleListing(r.url)) continue;
     seen.add(key);
     const d = domainOf(r.url);
+    // On shared ATS boards, allow at most 2 jobs per company (one company can flood the results).
+    if (ATS_DOMAINS.some((a) => d.endsWith(a))) {
+      const company = d.replace(/^boards\./, 'job-boards.') + '/' + (new URL(r.url).pathname.split('/')[1] || '');
+      const n = perCompany.get(company) ?? 0;
+      if (n >= 2) continue;
+      perCompany.set(company, n + 1);
+    }
     byDomain.set(d, [...(byDomain.get(d) ?? []), { ...r, url: r.url.replace(/^http:/, 'https:') }]);
   }
   // Round-robin across domains so one site doesn't dominate.
@@ -147,6 +160,14 @@ export function preCheck(text: string, title: string, words: string[]): string |
   const exp = /(\d{1,2})\s*\+?\s*(?:(?:-|to|–)\s*\d{1,2}\s*)?(?:years?|yrs)\s*(?:of\s*)?(?:relevant\s*|professional\s*|work\s*)?(?:experience|exp)/i.exec(text);
   if (exp && Number(exp[1]) >= 3) return 'not entry level';
   return null;
+}
+
+/** A closed job usually redirects to the company's job list: the id disappears from the URL. */
+function redirectedAway(original: string, final: string): boolean {
+  if (!final || final === original) return false;
+  const id = /\d{5,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.exec(new URL(original).pathname)?.[0];
+  if (/[?&]error=true/.test(final)) return true;
+  return !!id && !final.includes(id);
 }
 
 /** Keep the part of the page most likely to hold the job requirements. */
@@ -213,8 +234,11 @@ export async function analyseListing(
   candidate: TavilyResult,
   words: string[],
   onWait?: (s: number) => void,
+  /** Optional pre-fetched page (the pipeline fetches a few pages ahead). */
+  page?: Promise<{ text: string; finalUrl: string }>,
 ): Promise<{ listing: Listing | null; reason: string; dropped: number }> {
-  const text = await fetchPageText(candidate.url, 10_000);
+  const { text, finalUrl } = await (page ?? fetchPageText(candidate.url, 10_000));
+  if (redirectedAway(candidate.url, finalUrl)) return { listing: null, reason: 'job closed (redirected)', dropped: 0 };
   const skip = preCheck(text, candidate.title, words);
   if (skip) return { listing: null, reason: skip, dropped: 0 };
 

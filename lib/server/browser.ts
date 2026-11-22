@@ -41,19 +41,22 @@ export async function newContext(opts: { forScreenshot?: boolean } = {}): Promis
   return ctx;
 }
 
-/** Open a URL and return the visible text of the page ('' on failure). */
-export async function fetchPageText(url: string, timeoutMs = 15_000): Promise<string> {
+/**
+ * Open a URL and return the visible text of the page ('' on failure), plus the
+ * final URL after redirects (closed jobs often redirect to the company's job list).
+ */
+export async function fetchPageText(url: string, timeoutMs = 15_000): Promise<{ text: string; finalUrl: string }> {
   const ctx = await newContext();
   try {
     const page = await ctx.newPage();
     const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-    if (!res || res.status() >= 400) return '';
+    if (!res || res.status() >= 400) return { text: '', finalUrl: url };
     // Give client-rendered pages a moment to fill in.
     await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
     const text = await page.evaluate(() => document.body?.innerText || '');
-    return text;
+    return { text, finalUrl: page.url() };
   } catch {
-    return '';
+    return { text: '', finalUrl: url };
   } finally {
     await ctx.close().catch(() => {});
   }

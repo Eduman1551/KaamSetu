@@ -9,6 +9,7 @@ import { isNoise, skillDisplay, skillKey, textMentions } from './skills';
 import { findCourses } from './courses';
 import { writeReport } from './report';
 import { buildProofCards, type ProofCandidate } from './proof';
+import { fetchPageText } from './browser';
 
 type Send = (ev: ProgressEvent) => void;
 
@@ -86,14 +87,23 @@ export async function runPipeline(
     const reasons: Record<string, number> = {};
     let next = 0;
     let droppedQuotes = 0;
+    // Page loads are slow, AI calls are rate-limited: open a few pages ahead of the
+    // 3 AI workers so they never sit waiting for a browser.
+    const PREFETCH = 3;
+    const pageLoads = new Map<number, ReturnType<typeof fetchPageText>>();
+    const pageFor = (i: number) => {
+      if (i < candidates.length && !pageLoads.has(i)) pageLoads.set(i, fetchPageText(candidates[i].url, 10_000));
+      return pageLoads.get(i);
+    };
     const worker = async () => {
       while (next < candidates.length && listings.length < max && !isCancelled()) {
-        const c = candidates[next++];
+        const i = next++;
+        const c = candidates[i];
+        for (let k = 1; k <= PREFETCH; k++) if (listings.length + k < max) pageFor(i + k);
         try {
-          const r = await analyseListing(c, words, waitNote('scan'));
+          const r = await analyseListing(c, words, waitNote('scan'), pageFor(i));
           droppedQuotes += r.dropped;
           reasons[r.reason] = (reasons[r.reason] ?? 0) + 1;
-          if (r.reason === 'not a single listing') console.log(`[pipeline] not a single listing: ${c.url}`);
           if (r.listing && listings.length < max) {
             listings.push(r.listing);
             step('scan', `Scanning ${max} job listings… (${listings.length}/${max} read)`);
