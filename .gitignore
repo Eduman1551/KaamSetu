@@ -1,0 +1,22 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# next.js build output
+.next
+out
+dist
+
+# secrets — never commit
+.env.local
+.env*.local
+
+# temporary proof-card screenshots
+.tmp
+tmp-shots
+
+# misc
+*.log
+.DS_Store
+next-env.d.ts
+*.tsbuildinfo

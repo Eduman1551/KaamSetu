@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Projector-friendly base: 18px body text. */
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+  background: #0B1B3A;
+}
+body {
+  @apply bg-navy text-ink font-body antialiased;
+  line-height: 1.6;
+}
+h1, h2, h3, h4 { @apply font-heading; }
+
+@layer components {
+  /* Glass card: translucent navy panel, light border, blur. */
+  .glass {
+    background: rgba(17, 38, 80, 0.55);
+    border: 1px solid rgba(245, 247, 251, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    @apply rounded-2.5xl shadow-glass;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-4 font-heading font-semibold text-lg
+      transition-[transform,box-shadow,background-color] duration-200 select-none
+      focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-saffron/60
+      disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary { @apply btn bg-saffron text-navy hover:shadow-glow; }
+  .btn-secondary { @apply btn border-2 border-ink/30 text-ink hover:border-saffron hover:text-saffron bg-navy/30; }
+  .section-title { @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight; }
+  .kicker { @apply uppercase tracking-[0.2em] text-saffron font-semibold text-sm; }
+  /* Skeleton shimmer used instead of spinners. */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(245,247,251,0.06) 25%, rgba(245,247,251,0.14) 50%, rgba(245,247,251,0.06) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    @apply rounded-xl;
+  }
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible { outline: 3px solid #FF9933; outline-offset: 3px; }
+
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Very subtle floating particles in the hero. */
+@keyframes floaty {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  15%  { opacity: var(--o, 0.5); }
+  85%  { opacity: var(--o, 0.5); }
+  100% { transform: translate3d(var(--dx, 20px), -140px, 0); opacity: 0; }
+}
+.particle {
+  position: absolute; border-radius: 9999px; background: #FF9933;
+  animation: floaty var(--d, 14s) linear infinite; will-change: transform, opacity;
+}
+/* Slow gradient shift on the hero overlay. */
+@keyframes hueShift { 0%,100% { opacity: 0.55; } 50% { opacity: 0.8; } }
+.glow-shift { animation: hueShift 12s ease-in-out infinite; }
+
+@keyframes pulseSoft { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.pulse-soft { animation: pulseSoft 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .particle, .glow-shift, .pulse-soft, .skeleton { animation: none !important; }
+}
