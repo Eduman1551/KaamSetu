@@ -89,7 +89,7 @@ export default function ProofCard({ card }: { card: ProofCardData }) {
               height={420}
               unoptimized
               onError={() => setImgFailed(true)}
-              className="h-full w-full bg-ink object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
+              className="h-full w-full scale-[1.3] bg-ink object-cover object-center transition-transform duration-500 group-hover:scale-[1.38]"
             />
             <span className="absolute bottom-3 right-3 rounded-lg bg-navy/80 px-3 py-1 text-sm text-ink/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
               Click to enlarge

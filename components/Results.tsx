@@ -177,7 +177,7 @@ export default function Results({ result, onDelete, deleting }: Props) {
     <div id="results">
       {/* Sticky mini-nav for the presenter */}
       <div className="sticky top-[76px] z-40 -mx-1 mb-10 overflow-x-auto">
-        <nav className="glass mx-auto flex w-max gap-1 p-1.5" aria-label="Result sections">
+        <nav className="mx-auto flex w-max gap-1 rounded-2xl border border-ink/15 bg-navy-950/90 p-1.5 shadow-glass backdrop-blur-xl" aria-label="Result sections">
           {NAV.map((n) => (
             <button
               key={n.id}

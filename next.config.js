@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  devIndicators: false, // no dev badge during the live demo
   // Keep heavy Node-only packages out of the webpack bundle.
   serverExternalPackages: ['playwright', 'playwright-core', 'pdf-parse'],
   images: {

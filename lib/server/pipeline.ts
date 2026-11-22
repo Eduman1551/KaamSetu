@@ -93,6 +93,7 @@ export async function runPipeline(
           const r = await analyseListing(c, words, waitNote('scan'));
           droppedQuotes += r.dropped;
           reasons[r.reason] = (reasons[r.reason] ?? 0) + 1;
+          if (r.reason === 'not a single listing') console.log(`[pipeline] not a single listing: ${c.url}`);
           if (r.listing && listings.length < max) {
             listings.push(r.listing);
             step('scan', `Scanning ${max} job listings… (${listings.length}/${max} read)`);
@@ -177,12 +178,21 @@ export async function runPipeline(
     ]);
     checkCancel();
 
-    const skillsToAdd: SkillToAdd[] = toAdd.map((d, i) => ({ skill: d.skill, count: d.count, courses: courseLists[i] }));
+    // 2 courses per skill, never showing the same course under two skills.
+    const usedCourses = new Set<string>();
+    const skillsToAdd: SkillToAdd[] = toAdd.map((d, i) => {
+      const courses = courseLists[i].filter((c) => !usedCourses.has(c.url)).slice(0, 2);
+      courses.forEach((c) => usedCourses.add(c.url));
+      return { skill: d.skill, count: d.count, courses };
+    });
 
     // ATS tips: code checks first (fixes before passes), then AI extras; max 5.
+    // AI tips that would have the student list a skill they don't have are dropped.
     const fixes = ats.tips.filter((t) => !t.pass);
     const passes = ats.tips.filter((t) => t.pass);
-    const extra: AtsTip[] = report.extraAtsTips.filter(Boolean).map((t) => ({ pass: false, text: t }));
+    const extra: AtsTip[] = report.extraAtsTips
+      .filter((t) => t && !missing.some((m) => textMentions(t, m.key)))
+      .map((t) => ({ pass: false, text: t }));
     const atsTips = [...fixes, ...extra, ...passes].slice(0, 5);
 
     // ── 6. Proof cards ───────────────────────────────────────────────────────

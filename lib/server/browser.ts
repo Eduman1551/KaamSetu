@@ -28,6 +28,9 @@ export async function newContext(opts: { forScreenshot?: boolean } = {}): Promis
     deviceScaleFactor: opts.forScreenshot ? 1.5 : 1,
     javaScriptEnabled: true,
   });
+  // When run through tsx/esbuild (our scripts), functions passed to page.evaluate
+  // reference an `__name` helper that doesn't exist in the page. Provide a no-op.
+  await ctx.addInitScript({ content: 'window.__name = window.__name || function (f) { return f; };' });
   if (!opts.forScreenshot) {
     // Reading text only: skip images, fonts and media to load faster.
     await ctx.route('**/*', (route) => {

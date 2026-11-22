@@ -73,7 +73,7 @@ function toCourse(r: TavilyResult, skill: string): Course | null {
   return { title: cleanTitle(r.title, site.platform) || `${skill} course`, platform: site.platform, url: r.url, free, hours: readHours(text) };
 }
 
-/** Two courses for one skill, free ones first. */
+/** Up to 4 courses for one skill, free ones first (the caller keeps 2). */
 export async function findCourses(skill: string): Promise<Course[]> {
   const results = await tavilySearch(`${skill} course for beginners free online`, {
     maxResults: 12,
@@ -88,7 +88,7 @@ export async function findCourses(skill: string): Promise<Course[]> {
   for (const c of ordered) {
     if (out.some((o) => o.platform === c.platform || o.url === c.url)) continue;
     out.push(c);
-    if (out.length === 2) break;
+    if (out.length === 4) break;
   }
   return out;
 }
