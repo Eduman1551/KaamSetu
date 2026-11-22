@@ -1,0 +1,31 @@
+{
+  "sessionId": "demo",
+  "demo": true,
+  "generatedAt": "2026-11-22T12:00:00.000Z",
+  "targetRoles": ["Data Analyst", "Business Analyst"],
+  "educationLevel": "B.Tech (final year)",
+  "overallScore": 64,
+  "subScores": { "skillsMatch": 58, "atsReadability": 80, "impact": 55, "structure": 70 },
+  "summary": "PLACEHOLDER mock data — replaced by a real run in the demo-mode milestone.",
+  "strengths": [
+    { "skill": "Python", "count": 14 },
+    { "skill": "Excel", "count": 12 },
+    { "skill": "Communication", "count": 9 }
+  ],
+  "skillsToAdd": [
+    { "skill": "SQL", "count": 17, "courses": [
+      { "title": "Placeholder course A", "platform": "Coursera", "url": "https://www.coursera.org", "free": true, "hours": 10 },
+      { "title": "Placeholder course B", "platform": "Udemy", "url": "https://www.udemy.com", "free": false, "hours": null }
+    ] },
+    { "skill": "Power BI", "count": 11, "courses": [] }
+  ],
+  "atsTips": [
+    { "text": "Email and phone number found", "pass": true },
+    { "text": "Add a Projects section", "pass": false }
+  ],
+  "proofCards": [
+    { "skill": "SQL", "count": 17, "total": 20, "missing": true, "company": "Placeholder Co", "jobTitle": "Data Analyst", "url": "https://example.com", "scannedAt": "2026-11-22T12:00:00.000Z", "shotUrl": null, "sentence": "Placeholder sentence mentioning SQL." }
+  ],
+  "ttlMinutes": 30,
+  "listingsAnalyzed": { "count": 20, "sources": ["example.com"] }
+}
