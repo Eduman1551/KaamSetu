@@ -46,7 +46,7 @@ export async function fetchPageText(url: string, timeoutMs = 15_000): Promise<st
     const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
     if (!res || res.status() >= 400) return '';
     // Give client-rendered pages a moment to fill in.
-    await page.waitForLoadState('networkidle', { timeout: 2500 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
     const text = await page.evaluate(() => document.body?.innerText || '');
     return text;
   } catch {
