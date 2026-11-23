@@ -5,11 +5,11 @@ const nextConfig = {
   // Keep heavy Node-only packages out of the webpack bundle.
   serverExternalPackages: ['playwright', 'playwright-core', '@sparticuz/chromium', 'pdf-parse', 'ws', 'bcryptjs', 'sharp'],
   // Vercel: ship the serverless Chromium binary with the analyze function (it is read
-  // from disk at runtime, so file tracing can't find it on its own). pnpm keeps the real
-  // files under node_modules/.pnpm, so both paths are listed.
+  // from disk at runtime, so file tracing can't find it on its own). Only real paths under
+  // node_modules/.pnpm: globbing through pnpm's symlinked node_modules/<pkg> folders makes
+  // Vercel reject the function ("files in symlinked directories").
   outputFileTracingIncludes: {
     '/api/analyze': [
-      './node_modules/@sparticuz/chromium/bin/**',
       './node_modules/.pnpm/@sparticuz+chromium@*/node_modules/@sparticuz/chromium/bin/**',
       // playwright-core loads parts of itself dynamically; ship the whole package (~10 MB).
       './node_modules/.pnpm/playwright-core@*/node_modules/playwright-core/**',
