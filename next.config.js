@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   devIndicators: false, // no dev badge during the live demo
   // Keep heavy Node-only packages out of the webpack bundle.
-  serverExternalPackages: ['playwright', 'playwright-core', 'pdf-parse'],
+  serverExternalPackages: ['playwright', 'playwright-core', 'pdf-parse', 'ws', 'bcryptjs', 'sharp'],
   images: {
     // Screenshots are served by our own API route.
     localPatterns: [{ pathname: '/api/student/shot/**' }, { pathname: '/bg.jpg' }],
