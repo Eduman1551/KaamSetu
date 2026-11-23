@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Colour tokens (RGB triplets for Tailwind's alpha syntax) ─────────────────
+   Default = dark navy look (landing, login, signup).
+   .theme-light = warm ivory dashboards (student, company, college). */
+:root {
+  --c-navy: 11 27 58;
+  --c-navy-950: 6 18 42;
+  --c-navy-800: 17 38 80;
+  --c-navy-700: 24 50 102;
+  --c-ink: 245 247 251;
+  --c-saffron: 255 153 51;
+  --c-teal: 45 212 191;
+  --c-miss: 248 113 113;
+  --c-sky: 96 165 250;
+  --c-violet: 167 139 250;
+  --c-sand: 232 223 208;
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.28);
+}
+.theme-light {
+  --c-navy: 250 246 239; /* page: warm ivory #FAF6EF */
+  --c-navy-950: 253 251 247; /* inset / zebra #FDFBF7 */
+  --c-navy-800: 255 255 255; /* cards: white */
+  --c-navy-700: 253 235 215; /* active tint #FDEBD7 */
+  --c-ink: 43 33 24; /* #2B2118 */
+  --c-saffron: 232 132 44; /* #E8842C */
+  --c-teal: 94 140 106; /* sage #5E8C6A */
+  --c-miss: 200 85 61; /* terracotta #C8553D */
+  --c-sky: 79 124 172; /* muted blue #4F7CAC */
+  --c-violet: 94 140 106; /* college role = sage */
+  --c-sand: 232 223 208; /* #E8DFD0 */
+  --shadow-card: 0 1px 2px rgba(60, 40, 20, 0.06);
+  color: rgb(var(--c-ink));
+}
+html.theme-light, .theme-light body { background: #FAF6EF; }
+
 /* Type scale: body 16 / meta 13-14 / card title 17-18 / h3 20 / h2 28 / page title 32 / hero <= 48. */
 html {
   font-size: 16px;
@@ -57,7 +91,7 @@ h1, h2, h3, h4 {
   }
   .label { @apply mb-1.5 block text-sm font-medium text-ink/85; }
 
-  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[13px] font-medium; }
+  .chip { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[13px] font-medium; }
 
   /* Skeleton shimmer used instead of spinners. */
   .skeleton {
@@ -97,3 +131,58 @@ h1, h2, h3, h4 {
 
 /* Code should show the characters typed, not ligatures. */
 .font-mono, pre, code { font-variant-ligatures: none; }
+
+/* ── Warm light theme: component overrides (dashboards only) ─────────────────
+   Accent hues stay as specified; TEXT uses slightly darker shades so every
+   label passes WCAG AA on white/ivory. */
+.theme-light .card {
+  background: #FFFFFF;
+  border-color: #E8DFD0;
+  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.06);
+}
+.theme-light .lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.theme-light .lift:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(60, 40, 20, 0.08); }
+
+.theme-light .btn { border-radius: 10px; }
+.theme-light .btn-primary { background: #B5591A; color: #FFFFFF; box-shadow: none; }
+.theme-light .btn-primary:hover:not(:disabled) { background: #9E4C15; box-shadow: none; }
+.theme-light .btn-secondary { background: #FFFFFF; border-color: #E8DFD0; color: #2B2118; }
+.theme-light .btn-secondary:hover:not(:disabled) { border-color: #E8842C; color: #9E4C15; }
+.theme-light .btn-ghost { color: #6B5D4F; }
+.theme-light .btn-ghost:hover:not(:disabled) { background: #F5EEE2; color: #2B2118; }
+
+.theme-light .input { background: #FFFFFF; border-color: #E8DFD0; color: #2B2118; }
+.theme-light .input::placeholder { color: #9A8B7A; }
+.theme-light .input:focus { border-color: #E8842C; box-shadow: 0 0 0 3px rgba(232, 132, 44, 0.22); }
+.theme-light .label { color: #2B2118; }
+
+.theme-light .meta { color: #6B5D4F; }
+.theme-light .kicker { color: #A9561A; }
+.theme-light .text-saffron { color: #A9561A; }
+.theme-light .text-teal, .theme-light .text-violet { color: #46704F; }
+.theme-light .text-miss { color: #B0442E; }
+.theme-light .text-sky { color: #3B6694; }
+.theme-light .text-navy { color: #2B2118; }
+.theme-light .text-ink\/40, .theme-light .text-ink\/45, .theme-light .text-ink\/50, .theme-light .text-ink\/55,
+.theme-light .text-ink\/60 { color: #7A6B5C; }
+.theme-light .text-ink\/65, .theme-light .text-ink\/70, .theme-light .text-ink\/75 { color: #6B5D4F; }
+
+.theme-light .border-ink\/10, .theme-light .border-ink\/15, .theme-light .border-ink\/20, .theme-light .border-ink\/25 { border-color: #E8DFD0; }
+.theme-light .divide-ink\/5 > * + *, .theme-light .divide-ink\/10 > * + * { border-color: #F0E9DC; }
+
+.theme-light table thead { color: #6B5D4F; }
+.theme-light table tbody tr:nth-child(even) { background: #FDFBF7; }
+
+.theme-light .skeleton {
+  background: linear-gradient(90deg, #F3ECDF 25%, #EADFCC 50%, #F3ECDF 75%);
+  background-size: 200% 100%;
+}
+.theme-light :focus-visible { outline-color: #B5591A; }
+
+.theme-light .logo-mark { color: #0B1B3A; }
+.theme-light .page-title { font-size: 28px; }
+.theme-light .bg-ink\/5 { background-color: #F5EEE2; }
+.theme-light .bg-ink\/10 { background-color: #EFE7D9; }
+/* Long code tokens must never widen the page on phones. */
+.wrap-any { overflow-wrap: anywhere; word-break: break-word; }
+.card { min-width: 0; }

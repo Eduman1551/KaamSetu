@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { Logo } from '@/components/NavBar';
+import LightTheme from '@/components/LightTheme';
 import { Alert, Confirm, Skeleton } from '@/components/ui';
 import QuestionText, { looksLikeCode } from '@/components/student/QuestionText';
 import { SubBar } from '@/components/Results';
@@ -120,7 +121,7 @@ function Runner({ attemptId, live, onDone }: { attemptId: string; live: Live; on
   const low = left <= 300;
 
   return (
-    <div className="min-h-screen bg-navy">
+    <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-ink/10 bg-navy/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between gap-3 px-4">
           <Logo href="/dashboard/student?tab=verify" />
@@ -172,12 +173,12 @@ function Runner({ attemptId, live, onDone }: { attemptId: string; live: Live; on
                 <label
                   key={oi}
                   className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                    q.answer === oi ? 'border-saffron bg-saffron/10' : 'border-ink/10 bg-navy-800/40 hover:border-ink/30'
+                    q.answer === oi ? 'border-saffron bg-navy-700' : 'border-sand bg-navy-800 hover:border-saffron/60'
                   }`}
                 >
                   <input type="radio" name={q.id} checked={q.answer === oi} onChange={() => save(q, { answer: oi })} className="mt-1 h-4 w-4 shrink-0 accent-saffron" />
                   <span className="mr-1 font-mono text-sm text-ink/60">{String.fromCharCode(65 + oi)}</span>
-                  <span className={`whitespace-pre-wrap text-[15px] ${looksLikeCode(o) ? 'font-mono text-[13.5px]' : ''}`}>{o}</span>
+                  <span className={`whitespace-pre-wrap wrap-any text-[15px] ${looksLikeCode(o) ? 'font-mono text-[13.5px]' : ''}`}>{o}</span>
                 </label>
               ))}
             </fieldset>
@@ -214,7 +215,7 @@ function Runner({ attemptId, live, onDone }: { attemptId: string; live: Live; on
                 aria-label={`Question ${xi + 1}${x.answer !== null ? ', answered' : ''}${x.marked ? ', marked' : ''}`}
                 className={`num h-9 w-9 rounded-lg font-mono text-sm ${xi === i ? 'outline outline-2 outline-ink' : ''} ${
                   x.answer !== null ? 'bg-saffron text-navy' : 'bg-ink/5 text-ink/75'
-                } ${x.marked ? 'ring-2 ring-sky' : ''}`}
+                } ${x.marked ? 'ring-2 ring-sky ring-offset-1' : ''}`}
               >
                 {xi + 1}
               </button>
@@ -246,7 +247,7 @@ function ResultView({ r, passMark }: { r: Result; passMark: number }) {
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const tone = r.flagged ? 'text-miss' : r.verified ? 'text-teal' : 'text-saffron';
   return (
-    <div className="min-h-screen bg-navy">
+    <div className="min-h-screen">
       <header className="border-b border-ink/10">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Logo href="/dashboard/student" />
@@ -307,7 +308,7 @@ function ResultView({ r, passMark }: { r: Result; passMark: number }) {
                       }`}
                     >
                       {oi === q.correctIndex ? <CheckIcon width={15} height={15} className="mt-0.5 shrink-0" /> : oi === q.answer ? <XIcon width={15} height={15} className="mt-0.5 shrink-0" /> : <span className="w-[15px] shrink-0" />}
-                      <span className={`whitespace-pre-wrap ${looksLikeCode(o) ? 'font-mono text-[13px]' : ''}`}>{o}</span>
+                      <span className={`whitespace-pre-wrap wrap-any ${looksLikeCode(o) ? 'font-mono text-[13px]' : ''}`}>{o}</span>
                     </li>
                   ))}
                 </ul>
@@ -348,7 +349,7 @@ export default function TestPage({ attemptId, passMark }: { user: AuthUser; atte
   }, [load]);
 
   return (
-    <>
+    <LightTheme>
       <Head>
         <title>Skills test · KaamSetu</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -372,6 +373,6 @@ export default function TestPage({ attemptId, passMark }: { user: AuthUser; atte
           <Skeleton className="h-14 w-full" />
         </div>
       )}
-    </>
+    </LightTheme>
   );
 }

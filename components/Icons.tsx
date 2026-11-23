@@ -9,7 +9,7 @@ export const BridgeLogo = (p: P) => (
     <path d="M2 24h44" stroke="#FF9933" strokeWidth={3} />
     <path d="M9 24V8M39 24V8" stroke="#FF9933" strokeWidth={3} />
     <path d="M9 8c7 10 23 10 30 0" stroke="#FF9933" strokeWidth={2.5} />
-    <path d="M17 24v-7M24 24v-5M31 24v-7" stroke="#F5F7FB" strokeWidth={2} />
+    <path d="M17 24v-7M24 24v-5M31 24v-7" stroke="currentColor" strokeWidth={2} />
   </svg>
 );
 export const UploadIcon = (p: P) => (

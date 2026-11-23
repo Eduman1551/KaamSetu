@@ -14,13 +14,15 @@ import {
   YAxis,
 } from 'recharts';
 
-const AXIS = { stroke: 'rgba(245,247,251,0.45)', fontSize: 12 };
-const GRID = 'rgba(245,247,251,0.08)';
+// Light dashboard palette: sage = verified, terracotta = gaps, saffron = primary, blue = demand.
+export const CHART = { sage: '#5E8C6A', terracotta: '#C8553D', saffron: '#E8842C', blue: '#4F7CAC' };
+const AXIS = { stroke: '#9A8B7A', fontSize: 12 };
+const GRID = '#EFE7D9';
 const tooltipStyle = {
-  contentStyle: { background: '#112650', border: '1px solid rgba(245,247,251,0.15)', borderRadius: 10, fontSize: 13 },
-  labelStyle: { color: '#F5F7FB' },
-  itemStyle: { color: '#F5F7FB' },
-  cursor: { fill: 'rgba(245,247,251,0.05)' },
+  contentStyle: { background: '#FFFFFF', border: '1px solid #E8DFD0', borderRadius: 10, fontSize: 13, boxShadow: '0 4px 14px rgba(60,40,20,0.08)' },
+  labelStyle: { color: '#2B2118', fontWeight: 600 },
+  itemStyle: { color: '#6B5D4F' },
+  cursor: { fill: 'rgba(232,132,44,0.06)' },
 };
 
 function Mounted({ height, children }: { height: number; children: ReactNode }) {
@@ -39,18 +41,18 @@ export function ChartCard({ title, note, children }: { title: string; note?: str
   );
 }
 
-export function HBar({ data, x, y, color = '#2DD4BF', height = 240, highlight }: { data: object[]; x: string; y: string; color?: string; height?: number; highlight?: (d: never) => boolean }) {
+export function HBar({ data, x, y, color = CHART.sage, height = 240, highlight }: { data: object[]; x: string; y: string; color?: string; height?: number; highlight?: (d: never) => boolean }) {
   return (
     <Mounted height={height}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
           <CartesianGrid stroke={GRID} horizontal={false} />
           <XAxis type="number" allowDecimals={false} {...AXIS} />
-          <YAxis type="category" dataKey={y} width={110} interval={0} {...AXIS} tick={{ fill: 'rgba(245,247,251,0.8)', fontSize: 12 }} />
+          <YAxis type="category" dataKey={y} width={110} interval={0} {...AXIS} tick={{ fill: '#6B5D4F', fontSize: 12 }} />
           <Tooltip {...tooltipStyle} />
           <Bar dataKey={x} radius={[0, 6, 6, 0]} maxBarSize={22}>
             {data.map((d, i) => (
-              <Cell key={i} fill={highlight && highlight(d as never) ? '#F87171' : color} />
+              <Cell key={i} fill={highlight && highlight(d as never) ? CHART.terracotta : color} />
             ))}
           </Bar>
         </BarChart>
@@ -59,7 +61,7 @@ export function HBar({ data, x, y, color = '#2DD4BF', height = 240, highlight }:
   );
 }
 
-export function VBar({ data, x, y, color = '#FF9933', height = 240 }: { data: object[]; x: string; y: string; color?: string; height?: number }) {
+export function VBar({ data, x, y, color = CHART.saffron, height = 240 }: { data: object[]; x: string; y: string; color?: string; height?: number }) {
   return (
     <Mounted height={height}>
       <ResponsiveContainer width="100%" height="100%">

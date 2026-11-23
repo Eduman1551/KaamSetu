@@ -18,7 +18,7 @@ export default function QuestionText({ text, className = '' }: { text: string; c
             {p.text}
           </pre>
         ) : (
-          <p key={i} className="whitespace-pre-wrap">
+          <p key={i} className="whitespace-pre-wrap wrap-any">
             {p.text.trim()}
           </p>
         ),

@@ -4,7 +4,7 @@ import type { AnalysisResult, SkillToAdd } from '@/lib/types';
 import CountUp from './CountUp';
 import ProofCard from './ProofCard';
 import { CheckIcon, ChevronDown, ExternalIcon, WarnIcon } from './Icons';
-import { fadeUp, inView, scoreColor, stagger } from './motion';
+import { fadeUp, inView, scoreColor, scoreTextColor, stagger } from './motion';
 
 const NAV = [
   { id: 'r-score', label: 'Score' },
@@ -34,7 +34,7 @@ export function ScoreRing({ score, size = 'lg', label = 'out of 100' }: { score:
   return (
     <div className={`relative mx-auto shrink-0 ${box}`}>
       <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" aria-hidden>
-        <circle cx="100" cy="100" r={r} stroke="#F5F7FB" strokeOpacity="0.1" strokeWidth="14" fill="none" />
+        <circle cx="100" cy="100" r={r} stroke="#EFE7D9" strokeWidth="14" fill="none" />
         <circle
           cx="100"
           cy="100"
@@ -51,7 +51,7 @@ export function ScoreRing({ score, size = 'lg', label = 'out of 100' }: { score:
       <div className="absolute inset-0 flex flex-col items-center justify-center" role="img" aria-label={`Score ${score} out of 100`}>
         <span
           className={`font-mono font-semibold ${size === 'lg' ? 'text-[44px]' : 'text-[30px]'}`}
-          style={{ color, transition: 'color 0.4s ease' }}
+          style={{ color: scoreTextColor(v), transition: 'color 0.4s ease' }}
         >
           <CountUp to={score} duration={1.5} onValue={setV} />
         </span>
@@ -66,7 +66,7 @@ export function SubBar({ label, value }: { label: string; value: number }) {
     <div>
       <div className="mb-1 flex justify-between gap-2 text-sm">
         <span className="text-ink/85">{label}</span>
-        <span className="num font-mono font-medium" style={{ color: scoreColor(value) }}>
+        <span className="num font-mono font-medium" style={{ color: scoreTextColor(value) }}>
           {value}
         </span>
       </div>
@@ -172,7 +172,7 @@ export default function Results({ result }: { result: AnalysisResult }) {
             <button
               key={n.id}
               onClick={() => go(n.id)}
-              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-ink/80 transition-colors hover:bg-saffron hover:text-navy"
+              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-ink/80 transition-colors hover:bg-navy-700 hover:text-saffron"
             >
               {n.label}
             </button>

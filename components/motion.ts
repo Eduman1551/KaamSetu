@@ -18,9 +18,16 @@ export const inView = { initial: 'hidden', whileInView: 'show', viewport: { once
 /** Hover/tap feedback for buttons: lift + press. */
 export const pressable = { whileHover: { y: -2 }, whileTap: { y: 1, scale: 0.98 } } as const;
 
-/** Map a 0-100 score to a palette colour: red -> saffron -> teal. */
+/** Map a 0-100 score to the dashboard palette: terracotta -> saffron -> sage. */
 export function scoreColor(v: number): string {
-  if (v < 50) return '#F87171';
-  if (v < 75) return '#FF9933';
-  return '#2DD4BF';
+  if (v < 50) return '#C8553D';
+  if (v < 75) return '#E8842C';
+  return '#5E8C6A';
+}
+
+/** Darker shades of the same colours for text (AA on white). */
+export function scoreTextColor(v: number): string {
+  if (v < 50) return '#B0442E';
+  if (v < 75) return '#A9561A';
+  return '#46704F';
 }

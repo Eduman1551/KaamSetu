@@ -10,6 +10,7 @@ import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getStudentDashboard } from '@/lib/server/student';
 import { generationProgress } from '@/lib/server/testGen';
 import { fetcher } from '@/lib/fetcher';
+import { Briefcase, FileText, LayoutDashboard, Mail, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
 import Verify, { type TestRules } from '@/components/student/Verify';
 import Invites from '@/components/student/Invites';
 import DemandView from '@/components/student/Demand';
@@ -32,12 +33,12 @@ export const getServerSideProps = requireRole('student', async (_ctx, user) => {
 });
 
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'analysis', label: 'Resume Analysis' },
-  { id: 'verify', label: 'Verify My Skills' },
-  { id: 'demand', label: 'What Companies Want' },
-  { id: 'invites', label: 'Invites' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'analysis', label: 'Resume Analysis', icon: FileText },
+  { id: 'verify', label: 'Verify My Skills', icon: ShieldCheck },
+  { id: 'demand', label: 'What Companies Want', icon: Briefcase },
+  { id: 'invites', label: 'Invites', icon: Mail },
+  { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function StudentDashboard({ user, initial, rules }: { user: AuthUser; initial: StudentData; rules: TestRules }) {

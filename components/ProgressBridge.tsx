@@ -29,14 +29,14 @@ function Bridge({ pct }: { pct: number }) {
   return (
     <svg viewBox="0 0 600 210" className="h-auto w-full" role="img" aria-label={`Progress: ${Math.round(pct)} percent`}>
       {/* water */}
-      <path d="M0 185 Q 150 175 300 185 T 600 185" stroke="#F5F7FB" strokeOpacity="0.12" strokeWidth="2" fill="none" />
+      <path d="M0 185 Q 150 175 300 185 T 600 185" stroke="#E8DFD0" strokeWidth="2" fill="none" />
       {/* towers */}
-      <rect x={left - 8} y={40} width={12} height={140} rx={3} fill="#FF9933" />
-      <rect x={right - 4} y={40} width={12} height={140} rx={3} fill="#FF9933" />
+      <rect x={left - 8} y={40} width={12} height={140} rx={3} fill="#E8842C" />
+      <rect x={right - 4} y={40} width={12} height={140} rx={3} fill="#E8842C" />
       {/* main cable draws itself as progress grows */}
       <motion.path
         d={`M${left - 2} 44 Q 300 170 ${right + 2} 44`}
-        stroke="#FF9933"
+        stroke="#E8842C"
         strokeWidth="3"
         fill="none"
         initial={{ pathLength: 0 }}
@@ -60,12 +60,12 @@ function Bridge({ pct }: { pct: number }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 18 }}
                 >
-                  <line x1={cx} y1={cableY} x2={cx} y2={130} stroke="#F5F7FB" strokeOpacity="0.45" strokeWidth="1.5" />
-                  <rect x={x} y={130} width={w - 4} height={14} rx={3} fill="#F5F7FB" />
+                  <line x1={cx} y1={cableY} x2={cx} y2={130} stroke="#B9A98F" strokeWidth="1.5" />
+                  <rect x={x} y={130} width={w - 4} height={14} rx={3} fill="#5E8C6A" />
                 </motion.g>
               )}
             </AnimatePresence>
-            {!on && <rect x={x} y={130} width={w - 4} height={14} rx={3} fill="#F5F7FB" fillOpacity="0.07" />}
+            {!on && <rect x={x} y={130} width={w - 4} height={14} rx={3} fill="#F0E9DC" />}
           </g>
         );
       })}

@@ -7,7 +7,9 @@ import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getCompanyDashboard } from '@/lib/server/company';
 import { Logo } from '@/components/NavBar';
 import { Alert, Drawer, EmptyState, Kpi, RoleChip, SampleChip, Skeleton } from '@/components/ui';
-import { ChartCard, HBar, VBar } from '@/components/charts';
+import { CHART, ChartCard, HBar, VBar } from '@/components/charts';
+import LightTheme from '@/components/LightTheme';
+import { BadgeCheck, ClipboardList, Gauge, Handshake, LogOut } from 'lucide-react';
 import RequirementDrawer, { type RequirementRow } from '@/components/company/RequirementDrawer';
 import { fetcher, send } from '@/lib/fetcher';
 import { displaySkill } from '@/lib/skillNames';
@@ -159,13 +161,13 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
   );
 
   return (
-    <>
+    <LightTheme>
       <Head>
         <title>Company dashboard · KaamSetu</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="min-h-screen bg-navy">
-        <header className="sticky top-0 z-40 border-b border-ink/10 bg-navy/95 backdrop-blur">
+      <div className="min-h-screen">
+        <header className="sticky top-0 z-40 border-b border-sand bg-navy-800/95 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-2 px-3 sm:px-6">
             <Logo href="/dashboard" compact />
             <div className="flex items-center gap-2 sm:gap-3">
@@ -176,7 +178,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
                 <span className="hidden sm:inline">Post requirement</span>
               </button>
               <button className="btn-ghost btn-sm" onClick={() => signOut({ callbackUrl: '/' })}>
-                Log out
+                <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">Log out</span>
               </button>
             </div>
           </div>
@@ -189,14 +191,16 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
           </div>
 
           <motion.div initial="hidden" animate="show" variants={stagger} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {[
-              { label: 'Visible verified candidates', value: d.kpis.candidates },
-              { label: 'Average overall test score', value: `${d.kpis.avgScore}%` },
-              { label: 'Open requirements', value: d.kpis.openRequirements },
-              { label: 'Invites accepted', value: d.kpis.invitesAccepted },
-            ].map((k) => (
+            {(
+              [
+                { label: 'Visible verified candidates', value: d.kpis.candidates, icon: <BadgeCheck size={20} />, tone: 'sage' },
+                { label: 'Average overall test score', value: `${d.kpis.avgScore}%`, icon: <Gauge size={20} />, tone: 'saffron' },
+                { label: 'Open requirements', value: d.kpis.openRequirements, icon: <ClipboardList size={20} />, tone: 'blue' },
+                { label: 'Invites accepted', value: d.kpis.invitesAccepted, icon: <Handshake size={20} />, tone: 'sage' },
+              ] as const
+            ).map((k) => (
               <motion.div key={k.label} variants={fadeUp}>
-                <Kpi label={k.label} value={k.value} />
+                <Kpi label={k.label} value={k.value} icon={k.icon} tone={k.tone} />
               </motion.div>
             ))}
           </motion.div>
@@ -239,7 +243,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
                   data={d.analytics.demandSupply.map((s) => ({ ...s, skill: displaySkill(s.skill) }))}
                   x="verified"
                   y="skill"
-                  color="#60A5FA"
+                  color={CHART.blue}
                   highlight={(s: { verified: number }) => s.verified < 3}
                 />
               ) : (
@@ -250,7 +254,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
               <HBar data={d.analytics.topSkills.map((s) => ({ ...s, skill: displaySkill(s.skill) }))} x="count" y="skill" />
             </ChartCard>
             <ChartCard title="Score distribution" note="Overall test score of visible candidates">
-              <VBar data={d.analytics.histogram} x="range" y="count" />
+              <VBar data={d.analytics.histogram} x="range" y="count" color={CHART.saffron} />
             </ChartCard>
           </div>
 
@@ -321,7 +325,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
                   const shown = (req ? c.skills.filter((s) => reqSkills.has(s.skill)) : c.skills).slice(0, 5);
                   return (
                     <motion.li key={c.anonCode} variants={fadeUp}>
-                      <button onClick={() => setSelected(c)} className="card block h-full w-full p-4 text-left transition-colors hover:border-ink/30">
+                      <button onClick={() => setSelected(c)} className="card lift block h-full w-full p-4 text-left">
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
                             <p className="font-mono text-[15px] font-medium">{c.anonCode}</p>
@@ -330,10 +334,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
                             </p>
                           </div>
                           {c.match != null && (
-                            <div className="text-right">
-                              <p className="num font-mono text-xl font-semibold text-saffron">{c.match}%</p>
-                              <p className="meta">match</p>
-                            </div>
+                            <span className="num rounded-full bg-saffron/15 px-2.5 py-1 font-mono text-sm font-semibold text-saffron">{c.match}% match</span>
                           )}
                         </div>
                         <div className="mb-3 flex flex-wrap gap-1.5">
@@ -405,6 +406,6 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
         }}
       />
       <CandidateDrawer c={selected} data={d} onClose={() => setSelected(null)} onSent={() => mutate()} />
-    </>
+    </LightTheme>
   );
 }

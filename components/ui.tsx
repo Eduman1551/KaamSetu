@@ -168,9 +168,23 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`skeleton ${className}`} aria-hidden />;
 }
 
+/** Simple line illustration (an empty bridge) for empty states. */
+function EmptyArt() {
+  return (
+    <svg viewBox="0 0 120 64" className="mb-4 h-14 w-28 text-sand" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+      <path d="M6 48h108" />
+      <path d="M26 48V16M94 48V16" className="text-saffron" stroke="currentColor" />
+      <path d="M26 16c14 20 54 20 68 0" />
+      <path d="M44 48v-9M60 48v-6M76 48v-9" strokeDasharray="3 4" />
+      <path d="M10 58c8-3 16 3 24 0s16-3 24 0 16 3 24 0 16-3 24 0" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
 export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="card flex flex-col items-center px-6 py-10 text-center">
+      <EmptyArt />
       <h3 className="card-title mb-1">{title}</h3>
       {children && <div className="max-w-prose text-[15px] text-ink/70">{children}</div>}
       {action && <div className="mt-4">{action}</div>}
@@ -178,12 +192,22 @@ export function EmptyState({ title, children, action }: { title: string; childre
   );
 }
 
-export function Kpi({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+const TONES = {
+  saffron: 'bg-saffron/15 text-saffron',
+  sage: 'bg-teal/15 text-teal',
+  blue: 'bg-sky/15 text-sky',
+  terracotta: 'bg-miss/15 text-miss',
+};
+
+export function Kpi({ label, value, hint, icon, tone = 'saffron' }: { label: string; value: ReactNode; hint?: string; icon?: ReactNode; tone?: keyof typeof TONES }) {
   return (
-    <div className="card p-4">
+    <div className="card flex h-full items-start gap-3 p-4">
+      {icon && <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${TONES[tone]}`}>{icon}</span>}
+      <div className="min-w-0">
       <p className="meta">{label}</p>
-      <p className="num mt-1 font-mono text-2xl font-semibold">{value}</p>
+      <p className="num mt-0.5 font-mono text-2xl font-semibold">{value}</p>
       {hint && <p className="meta mt-0.5">{hint}</p>}
+      </div>
     </div>
   );
 }
@@ -210,7 +234,7 @@ export function Confirm({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-navy-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={title} onClick={onCancel}>
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={title} onClick={onCancel}>
       <div className="card w-full max-w-md bg-navy-800 p-5" onClick={(e) => e.stopPropagation()}>
         <h3 className="h3 mb-2">{title}</h3>
         <div className="mb-5 text-[15px] text-ink/80">{children}</div>
@@ -238,8 +262,8 @@ export function Drawer({ open, title, onClose, children, footer }: { open: boole
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-navy-950/70 backdrop-blur-sm" onClick={onClose} />
-      <aside className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-ink/10 bg-navy-800 shadow-glass">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-sand bg-navy-800 shadow-2xl">
         <div className="flex items-center justify-between border-b border-ink/10 px-5 py-3">
           <h2 className="h3">{title}</h2>
           <button className="btn-ghost btn-sm" onClick={onClose} aria-label="Close">
