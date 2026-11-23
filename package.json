@@ -22,6 +22,9 @@
     "seed:sample": "tsx --env-file=.env.local scripts/seed-sample.ts"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@neondatabase/serverless": "^1.2.1",
     "@sparticuz/chromium": "153.0.0",
     "bcryptjs": "^3.0.3",
