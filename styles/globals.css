@@ -94,3 +94,6 @@ h1, h2, h3, h4 {
   html { scroll-behavior: auto; }
   .particle, .glow-shift, .pulse-soft, .skeleton { animation: none !important; }
 }
+
+/* Code should show the characters typed, not ligatures. */
+.font-mono, pre, code { font-variant-ligatures: none; }
