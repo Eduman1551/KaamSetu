@@ -1,5 +1,5 @@
 // Small shared UI building blocks.
-import { useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { useEffect, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 import { passwordStrength } from '@/lib/validation';
 import { WarnIcon } from './Icons';
 
@@ -224,5 +224,41 @@ export function Confirm({
         </div>
       </div>
     </div>
+  );
+}
+
+/** Right-side drawer with overlay. Esc or overlay click closes it. */
+export function Drawer({ open, title, onClose, children, footer }: { open: boolean; title: string; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-navy-950/70 backdrop-blur-sm" onClick={onClose} />
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-ink/10 bg-navy-800 shadow-glass">
+        <div className="flex items-center justify-between border-b border-ink/10 px-5 py-3">
+          <h2 className="h3">{title}</h2>
+          <button className="btn-ghost btn-sm" onClick={onClose} aria-label="Close">
+            Close
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {footer && <div className="border-t border-ink/10 px-5 py-3">{footer}</div>}
+      </aside>
+    </div>
+  );
+}
+
+/** Small "includes sample data" chip shown when seeded rows are in view. */
+export function SampleChip({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="chip border border-ink/15 bg-ink/5 text-ink/70" title="Some rows are seeded sample students for the demo">
+      Includes sample data
+    </span>
   );
 }

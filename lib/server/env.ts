@@ -13,6 +13,8 @@ export const env = {
   modelFast: process.env.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
   maxListings: num('MAX_LISTINGS', 20),
   screenshotTimeoutMs: num('SCREENSHOT_TIMEOUT_MS', 10000),
+  /** Include seeded sample students in company/college views (default true). */
+  showSynthetic: process.env.SHOW_SYNTHETIC !== 'false',
 };
 
 /** Throws a friendly error if a required key is missing. */

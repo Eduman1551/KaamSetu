@@ -80,7 +80,7 @@ export const RequirementSchema = z.object({
 });
 
 export const InviteSchema = z.object({
-  anonCode: z.string().regex(/^KS-[0-9A-F]{6}$/),
+  anonCode: z.string().regex(/^KS-[0-9A-F]{6}$/, 'Unknown candidate code.'),
   requirementId: z.string().uuid().nullable(),
   message: z.string().trim().min(5, 'Write a short message.').max(280, 'Keep it under 280 characters.'),
 });
