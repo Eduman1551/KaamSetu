@@ -5,13 +5,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import AnalysisFlow from '@/components/AnalysisFlow';
 import Overview from '@/components/student/Overview';
-import { EmptyState } from '@/components/ui';
 import type { StudentData } from '@/components/student/types';
 import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getStudentDashboard } from '@/lib/server/student';
 import { generationProgress } from '@/lib/server/testGen';
 import { fetcher } from '@/lib/fetcher';
 import Verify, { type TestRules } from '@/components/student/Verify';
+import Invites from '@/components/student/Invites';
+import DemandView from '@/components/student/Demand';
+import Settings from '@/components/student/Settings';
 import * as T from '@/lib/server/testConfig';
 
 export const getServerSideProps = requireRole('student', async (_ctx, user) => {
@@ -63,9 +65,9 @@ export default function StudentDashboard({ user, initial, rules }: { user: AuthU
           {tab === 'overview' && <Overview d={d} go={go} />}
           {tab === 'analysis' && <AnalysisFlow initialResult={d.analysis} onDone={() => mutate()} />}
           {tab === 'verify' && <Verify d={d} rules={rules} refresh={() => mutate()} />}
-          {tab === 'demand' && <EmptyState title="What companies want">Coming soon.</EmptyState>}
-          {tab === 'invites' && <EmptyState title="Invites">Coming soon.</EmptyState>}
-          {tab === 'settings' && <EmptyState title="Settings">Coming soon.</EmptyState>}
+          {tab === 'demand' && <DemandView go={go} />}
+          {tab === 'invites' && <Invites onChange={() => mutate()} />}
+          {tab === 'settings' && <Settings d={d} refresh={() => mutate()} />}
         </motion.div>
       </AnimatePresence>
     </DashboardLayout>
