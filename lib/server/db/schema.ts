@@ -245,9 +245,9 @@ export const invites = pgTable(
 /** Cached Groq-generated workshop suggestions for a college's priority gaps. */
 export interface WorkshopPlan {
   title: string;
-  topics: string[];
+  topics: string[]; // 3 topics
   duration: string;
-  audience: string;
+  audience: string; // target group
 }
 
 export const workshops = pgTable(
@@ -259,6 +259,8 @@ export const workshops = pgTable(
       .references(() => colleges.userId, { onDelete: 'cascade' }),
     skill: text('skill').notNull(),
     plan: jsonb('plan').$type<WorkshopPlan>().notNull(),
+    /** Data signature the plan was generated for (regenerate when it changes). */
+    signature: text('signature'),
     createdAt: ts('created_at').defaultNow().notNull(),
   },
   (t) => [unique('workshops_college_skill_uq').on(t.collegeId, t.skill)],

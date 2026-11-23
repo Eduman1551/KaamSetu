@@ -1,71 +1,45 @@
 import { describe, expect, it } from 'vitest';
-import { distribution, monthlyTrend, overview, safeCount, skillGaps, type StudentRow } from '@/lib/collegeStats';
+import { lacking, overview, priorityGaps, skillStats, workshopSignature, type StudentRow } from '@/lib/collegeStats';
 
-const row = (o: Partial<StudentRow> = {}): StudentRow => ({
-  gradYear: 2026,
-  educationLevel: 'BCA',
-  analysed: true,
-  tested: true,
-  verified: true,
-  visible: false,
-  testScorePct: 80,
-  attempts: [{ at: new Date('2026-10-01'), verified: true }],
-  ...o,
-});
+const row = (o: Partial<StudentRow> = {}): StudentRow => ({ tested: true, verified: true, testScorePct: 80, ...o });
+const scores = (skill: string, list: number[]) => list.map((scorePct) => ({ skill, scorePct }));
 
 describe('k >= 5 suppression', () => {
   it('hides cohort percentages for fewer than 5 students', () => {
     const o = overview([row(), row(), row(), row()]);
-    expect(o.enough).toBe(false);
     expect(o.verifiedPct).toBeNull();
+    expect(o.testedPct).toBeNull();
     expect(o.avgScore).toBeNull();
     expect(overview([row(), row(), row(), row(), row()]).verifiedPct).toBe(100);
   });
 
-  it('hides average score when fewer than 5 were tested', () => {
+  it('hides the average score when fewer than 5 were tested', () => {
     const rows = [row(), row(), row(), row(), row({ tested: false, testScorePct: null }), row({ tested: false, testScorePct: null })];
     expect(overview(rows).avgScore).toBeNull();
+    expect(overview(rows).testedPct).toBe(67);
   });
 
-  it('suppresses per-skill statistics below 5 tested students', () => {
-    const skills = [
-      ...Array.from({ length: 6 }, (_, i) => ({ skill: 'sql', scorePct: 50 + i * 5, verified: i > 2 })),
-      ...Array.from({ length: 3 }, () => ({ skill: 'docker', scorePct: 20, verified: false })),
-    ];
-    const g = skillGaps(skills, (s) => (s === 'sql' ? 80 : 60));
-    const sql = g.find((r) => r.skill === 'sql')!;
-    const docker = g.find((r) => r.skill === 'docker')!;
-    expect(sql.avgScore).toBe(63);
-    expect(sql.gapIndex).toBe(29.6);
-    expect(sql.priority).toBe(true);
-    expect(docker.tested).toBe('<5');
-    expect(docker.avgScore).toBeNull();
-    expect(docker.verifiedPct).toBeNull();
-    expect(docker.gapIndex).toBeNull();
-    expect(docker.priority).toBe(false);
+  it('drops skills tested by fewer than 5 students', () => {
+    const s = skillStats([...scores('sql', [50, 55, 60, 65, 70, 75]), ...scores('docker', [20, 20, 20])], (k) => (k === 'sql' ? 80 : 60));
+    expect(s.map((x) => x.skill)).toEqual(['sql']);
+    expect(s[0]).toMatchObject({ tested: 6, avgScore: 63, demandPct: 80, gapIndex: 29.6 });
   });
+});
 
-  it('shows small counts as "<5" (but 0 stays 0)', () => {
-    expect(safeCount(0)).toBe(0);
-    expect(safeCount(3)).toBe('<5');
-    expect(safeCount(5)).toBe(5);
-    const d = distribution([row({ gradYear: 2025 }), ...Array.from({ length: 5 }, () => row())]);
-    expect(d.byYear).toEqual([
-      { label: '2025', count: '<5' },
-      { label: '2026', count: 5 },
-    ]);
+describe('ranking', () => {
+  const stats = skillStats(
+    ['a', 'b', 'c', 'd', 'e', 'f', 'g'].flatMap((k, i) => scores(k, [40 + i * 8, 40 + i * 8, 40 + i * 8, 40 + i * 8, 40 + i * 8])),
+    (k) => (k === 'g' ? 0 : 50),
+  );
+  it('lists the 6 lowest averages', () => {
+    expect(lacking(stats).map((s) => s.skill)).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
   });
-
-  it('suppresses the monthly trend for tiny cohorts', () => {
-    expect(monthlyTrend([row()], new Date('2026-11-23')).every((m) => m.verifiedPct === null)).toBe(true);
-    const t = monthlyTrend(Array.from({ length: 5 }, () => row()), new Date('2026-11-23'));
-    expect(t.map((m) => m.verifiedPct)).toEqual([0, 0, 0, 0, 100, 100]);
+  it('picks the 3 highest gap indexes, ignoring zero demand', () => {
+    expect(priorityGaps(stats).map((s) => s.skill)).toEqual(['a', 'b', 'c']);
   });
-
-  it('ranks priority gaps by gap index and marks at most 5', () => {
-    const skills = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].flatMap((s, i) => Array.from({ length: 5 }, () => ({ skill: s, scorePct: 40 + i * 5, verified: false })));
-    const g = skillGaps(skills, () => 50);
-    expect(g.filter((r) => r.priority)).toHaveLength(5);
-    expect(g[0].skill).toBe('a');
+  it('workshop cache key only changes on meaningful moves', () => {
+    const base = { skill: 'docker', tested: 10, avgScore: 41, demandPct: 52, gapIndex: 30 };
+    expect(workshopSignature(base)).toBe(workshopSignature({ ...base, avgScore: 42, demandPct: 54 }));
+    expect(workshopSignature(base)).not.toBe(workshopSignature({ ...base, avgScore: 50 }));
   });
 });
