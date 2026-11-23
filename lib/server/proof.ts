@@ -1,10 +1,8 @@
 // Proof cards: exactly 3 skills, each backed by a real listing sentence and,
 // when possible, a real screenshot of that listing with the sentence highlighted.
-import fs from 'fs/promises';
 import type { ProofCardData } from '@/lib/types';
 import { env } from './env';
 import { captureProof } from './screenshot';
-import { newShotPath, registerShot } from './shots';
 
 export interface ProofEvidence {
   url: string;
@@ -44,13 +42,15 @@ export function pickProofSkills(cands: ProofCandidate[]): ProofCandidate[] {
   return picked.sort((a, b) => b.priority - a.priority);
 }
 
-/** Build the 3 proof cards. Screenshots run in parallel (one per card). */
+/**
+ * Build the 3 proof cards. Screenshots run in parallel (one per card) and are
+ * returned in memory; the caller stores them (compressed) in the database.
+ */
 export async function buildProofCards(
   cands: ProofCandidate[],
   total: number,
-  sessionId: string,
   isCancelled: () => boolean,
-): Promise<ProofCardData[]> {
+): Promise<{ cards: ProofCardData[]; shots: (Buffer | null)[] }> {
   const chosen = pickProofSkills(cands);
   const scannedAt = new Date().toISOString();
 
@@ -64,22 +64,19 @@ export async function buildProofCards(
     return order;
   });
 
-  return Promise.all(
-    chosen.map(async (c, i): Promise<ProofCardData> => {
-      const base = { skill: c.skill, count: c.count, total, missing: c.missing, scannedAt };
+  const out = await Promise.all(
+    chosen.map(async (c, i): Promise<{ card: ProofCardData; shot: Buffer | null }> => {
+      const base = { skill: c.skill, count: c.count, total, missing: c.missing, scannedAt, shotUrl: null };
       // Try the best listing first; if blocked or the sentence can't be found, try the next one.
       for (const ev of orders[i].slice(0, MAX_TRIES_PER_SKILL)) {
         if (isCancelled()) break;
         const jpg = await captureProof(ev.url, ev.quote, env.screenshotTimeoutMs);
-        if (!jpg) continue;
-        const { token, file } = await newShotPath(sessionId);
-        await fs.writeFile(file, jpg);
-        registerShot(token, file, sessionId);
-        return { ...base, company: ev.company, jobTitle: ev.jobTitle, url: ev.url, sentence: ev.sentence, shotUrl: `/api/shot/${token}` };
+        if (jpg) return { card: { ...base, company: ev.company, jobTitle: ev.jobTitle, url: ev.url, sentence: ev.sentence }, shot: jpg };
       }
       // All failed: text card with the exact extracted sentence.
       const ev = orders[i][0];
-      return { ...base, company: ev.company, jobTitle: ev.jobTitle, url: ev.url, sentence: ev.sentence, shotUrl: null };
+      return { card: { ...base, company: ev.company, jobTitle: ev.jobTitle, url: ev.url, sentence: ev.sentence }, shot: null };
     }),
   );
+  return { cards: out.map((o) => o.card), shots: out.map((o) => o.shot) };
 }

@@ -12,7 +12,6 @@ export const env = {
   modelMain: process.env.GROQ_MODEL_MAIN || 'llama-3.3-70b-versatile',
   modelFast: process.env.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
   maxListings: num('MAX_LISTINGS', 20),
-  sessionTtlMinutes: num('SESSION_TTL_MINUTES', 30),
   screenshotTimeoutMs: num('SCREENSHOT_TIMEOUT_MS', 10000),
 };
 

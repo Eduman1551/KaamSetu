@@ -50,8 +50,6 @@ export interface SubScores {
 }
 
 export interface AnalysisResult {
-  sessionId: string;
-  demo: boolean;
   generatedAt: string;
   targetRoles: string[];
   educationLevel: string;
@@ -63,8 +61,6 @@ export interface AnalysisResult {
   atsTips: AtsTip[];
   proofCards: ProofCardData[];
   listingsAnalyzed: { count: number; sources: string[] };
-  /** Minutes until the server auto-deletes this session. */
-  ttlMinutes: number;
 }
 
 /** Server-sent progress events streamed by POST /api/analyze. */

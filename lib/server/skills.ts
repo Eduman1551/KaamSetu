@@ -41,18 +41,11 @@ export function skillKey(name: string): string {
   return ALIAS_TO_KEY.get(s) ?? s;
 }
 
-// Nice display names for canonical keys.
-const DISPLAY: Record<string, string> = {
-  excel: 'Excel', 'power bi': 'Power BI', sql: 'SQL', javascript: 'JavaScript', 'node.js': 'Node.js', react: 'React',
-  'machine learning': 'Machine Learning', 'artificial intelligence': 'AI', communication: 'Communication',
-  'problem solving': 'Problem Solving', 'data visualization': 'Data Visualization', statistics: 'Statistics',
-  'c++': 'C++', aws: 'AWS', gcp: 'Google Cloud', 'rest apis': 'REST APIs', oop: 'OOP', python: 'Python',
-  'data analysis': 'Data Analysis', teamwork: 'Teamwork', 'attention to detail': 'Attention to Detail', git: 'Git',
-};
+import { displaySkill } from '@/lib/skillNames';
 
 /** Display name: canonical one if we have it, else the listing's own spelling. */
 export function skillDisplay(key: string, fallback: string): string {
-  return DISPLAY[key] ?? fallback;
+  return displaySkill(key, fallback);
 }
 
 /** Things that are not skills (degrees, experience, etc.). */

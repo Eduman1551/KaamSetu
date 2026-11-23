@@ -10,6 +10,7 @@ const ReportSchema = z.object({
   summary: z.string().catch(''),
   extraAtsTips: z.array(z.string()).catch([]).transform((a) => a.slice(0, 3)),
   relevance: z.record(z.coerce.number()).catch({}),
+  highlights: z.array(z.string()).catch([]).transform((a) => a.slice(0, 5)),
 });
 export type Report = z.infer<typeof ReportSchema>;
 
@@ -29,7 +30,7 @@ export async function writeReport(input: {
   return chatJSON({
     model: env.modelMain,
     schema: ReportSchema,
-    maxTokens: 700,
+    maxTokens: 1000,
     onWait: input.onWait,
     system:
       'You are a friendly, honest career coach for Indian freshers. Use only the facts given. Never invent numbers. Reply with JSON only.',
@@ -46,11 +47,12 @@ ${input.resumeText.slice(0, 5000)}
 """
 
 Return JSON:
-{"impactScore": 0-100, "structureScore": 0-100, "summary": "", "extraAtsTips": [""], "relevance": {"<skill>": 1-3}}
+{"impactScore": 0-100, "structureScore": 0-100, "summary": "", "extraAtsTips": [""], "relevance": {"<skill>": 1-3}, "highlights": [""]}
 - impactScore: how well the bullet points show results (numbers, outcomes, strong action verbs).
 - structureScore: clear order, headings, consistent formatting, easy to scan.
 - summary: ONE plain sentence (max 30 words) spoken directly to the student as "you" (never use their name), about where they stand and the single most useful next step. Only mention skills from the list above; for MISSING skills say "learn" or "add", never "highlight".
 - extraAtsTips: up to 3 short, specific tips (max 14 words each) about the resume DOCUMENT: wording, bullet points, numbers, keywords from the listings, formatting. Not about learning new skills, and never suggest listing a skill the resume does not show. Do not repeat the detected issues.
-- relevance: for each skill in the list, 3 = core to the target role, 2 = useful, 1 = generic.`,
+- relevance: for each skill in the list, 3 = core to the target role, 2 = useful, 1 = generic.
+- highlights: up to 5 short bullets (max 18 words each) describing the student's projects and experience in GENERIC terms, for an anonymous profile. NEVER include names of people, employers, clients, colleges or schools, places, links, emails, phone numbers or usernames. Example: "Built a sales dashboard analysing 12,000 rows of data".`,
   });
 }

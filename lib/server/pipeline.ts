@@ -10,6 +10,7 @@ import { findCourses } from './courses';
 import { writeReport } from './report';
 import { buildProofCards, type ProofCandidate } from './proof';
 import { fetchPageText } from './browser';
+import { selectCoreSkills } from '@/lib/coreSkills';
 
 type Send = (ev: ProgressEvent) => void;
 
@@ -20,9 +21,9 @@ class Cancelled extends Error {}
 export function friendly(err: unknown): Error {
   if (err instanceof FriendlyError || err instanceof Cancelled) return err;
   const e = err as { status?: number; message?: string };
-  if (e?.status === 429) return new FriendlyError('The AI service is busy right now (rate limit). Please try again in a minute, or use the demo result.');
+  if (e?.status === 429) return new FriendlyError('The AI service is busy right now (rate limit). Please try again in a minute.');
   if (e?.status === 401) return new FriendlyError('The AI key on the server is invalid. Check GROQ_API_KEY in .env.local.');
-  if (e?.status && e.status >= 400) return new FriendlyError('The AI service had a hiccup. Please try again, or use the demo result.');
+  if (e?.status && e.status >= 400) return new FriendlyError('The AI service had a hiccup. Please try again.');
   return new FriendlyError(e?.message || 'Something went wrong during analysis.');
 }
 
@@ -37,12 +38,19 @@ function displayName(a: SkillAgg) {
   return skillDisplay(a.key, [...a.names.entries()].sort((x, y) => y[1] - x[1])[0][0]);
 }
 
-export async function runPipeline(
-  pdf: Buffer,
-  sessionId: string,
-  send: Send,
-  isCancelled: () => boolean,
-): Promise<AnalysisResult> {
+export interface PipelineOutput {
+  result: AnalysisResult;
+  /** Proof screenshot JPEGs (index-aligned with result.proofCards; null = text card). */
+  shots: (Buffer | null)[];
+  /** Normalised skill keys found on the resume. */
+  resumeSkills: string[];
+  /** Up to 5 testable resume skills that employers ask for (skills test). */
+  coreSkills: string[];
+  /** AI-written generic highlight bullets (scrubbed again before saving). */
+  highlights: string[];
+}
+
+export async function runPipeline(pdf: Buffer, send: Send, isCancelled: () => boolean): Promise<PipelineOutput> {
   const step = (id: string, label: string, status: 'active' | 'done' = 'active') => send({ type: 'step', id, label, status });
   const progress = (pct: number) => send({ type: 'progress', pct: Math.round(pct) });
   const checkCancel = () => {
@@ -73,7 +81,7 @@ export async function runPipeline(
     const max = env.maxListings;
     const candidates = await findListingUrls(profile.targetRoles, Math.ceil(max * 2.5));
     if (candidates.length < 5) {
-      throw new FriendlyError('We could not find enough live job listings for your target roles right now. Please try again, or use the demo result.');
+      throw new FriendlyError('We could not find enough live job listings for your target roles right now. Please try again in a few minutes.');
     }
     step('search', `Found ${candidates.length} live job pages to open`, 'done');
     progress(16);
@@ -119,7 +127,7 @@ export async function runPipeline(
     await Promise.all([worker(), worker(), worker()]);
     checkCancel();
     if (listings.length < 5) {
-      throw new FriendlyError(`Only ${listings.length} listings could be read right now (some sites block automated visits). Please try again, or use the demo result.`);
+      throw new FriendlyError(`Only ${listings.length} listings could be read right now (some sites block automated visits). Please try again in a few minutes.`);
     }
     const total = listings.length;
     const domains = [...new Set(listings.map((l) => l.domain))];
@@ -222,8 +230,8 @@ export async function runPipeline(
     }));
     waitingLabel = 'Taking proof screenshots…';
     step('shots', 'Taking proof screenshots…');
-    const proofCards = await buildProofCards(proofCandidates, total, sessionId, isCancelled);
-    const captured = proofCards.filter((c) => c.shotUrl).length;
+    const { cards: proofCards, shots } = await buildProofCards(proofCandidates, total, isCancelled);
+    const captured = shots.filter(Boolean).length;
     step('shots', `Captured ${captured} of ${proofCards.length} proof screenshots`, 'done');
     progress(99);
     checkCancel();
@@ -235,9 +243,8 @@ export async function runPipeline(
       report.summary.trim() ||
       `You match ${skillsMatch}% of today's in-demand skills for ${profile.targetRoles[0]}. Adding ${toAdd[0]?.skill ?? 'one key skill'} is your best next step.`;
 
-    return {
-      sessionId,
-      demo: false,
+    const resumeSkillKeys = [...new Set(profile.skills.map(skillKey).filter((k) => !isNoise(k)))];
+    const result: AnalysisResult = {
       generatedAt: new Date().toISOString(),
       targetRoles: profile.targetRoles,
       educationLevel: profile.educationLevel,
@@ -249,7 +256,13 @@ export async function runPipeline(
       atsTips,
       proofCards,
       listingsAnalyzed: { count: total, sources: domains },
-      ttlMinutes: env.sessionTtlMinutes,
+    };
+    return {
+      result,
+      shots,
+      resumeSkills: resumeSkillKeys,
+      coreSkills: selectCoreSkills(demand.map((d) => ({ key: d.key, count: d.count, has: d.has })), resumeSkillKeys),
+      highlights: report.highlights,
     };
   } catch (err) {
     throw friendly(err);
