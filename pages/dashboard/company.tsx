@@ -166,8 +166,8 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
       </Head>
       <div className="min-h-screen bg-navy">
         <header className="sticky top-0 z-40 border-b border-ink/10 bg-navy/95 backdrop-blur">
-          <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-3 px-4 sm:px-6">
-            <Logo href="/dashboard" />
+          <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-2 px-3 sm:px-6">
+            <Logo href="/dashboard" compact />
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="hidden max-w-[200px] truncate text-sm text-ink/80 md:inline">{d.company?.name ?? user.name}</span>
               <RoleChip role="company" />

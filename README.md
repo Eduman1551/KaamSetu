@@ -2,125 +2,137 @@
 
 **Bridge the gap between your degree and your first job.**
 
-KaamSetu is for final-year students and freshers in India. Upload a resume PDF and the app:
+KaamSetu is a 3-role platform for India's freshers:
 
-1. reads it with AI (target roles, skills, education),
-2. finds **20 real, live job listings** in India for those roles on the web,
-3. opens every listing in a real browser and extracts the skills employers ask for, **verifying every quote against the page text**,
-4. shows your score, your in-demand strengths, the top 5 skills to add (each with 2 real courses), ATS tips,
-5. and **3 proof cards**: real screenshots of live listings with the exact sentence highlighted.
+| Role | What they get |
+|---|---|
+| **Student** (final-year / fresher) | AI resume analysis against **20 live job listings**, real proof screenshots, courses for missing skills, a **hard 15-question AI skills test** to get **Verified**, insight into what companies want, and invites from companies. |
+| **Company** | One single-page dashboard of **anonymous, verified** candidates ranked against their own hiring requirements, with analytics and interest invites. |
+| **College** | **Aggregate-only** cohort skill gaps (k ≥ 5), a verified-rate trend, AI-suggested workshops and a CSV report. |
 
-No login, no database. The resume is processed in memory only and never stored.
-
-> Core rule: every number comes from listings fetched live in that run. A skill with no listing evidence is never shown, and skill trends are labelled "trend from today's listings", not a guarantee.
+Built for **Engineering for Social Empowerment**.
 
 ---
 
 ## Setup
 
-Requirements: Node.js 20+ and pnpm.
+Requirements: Node.js 20+ (22 recommended), pnpm, a [Neon](https://neon.tech) Postgres database, a [Groq](https://console.groq.com) key and a [Tavily](https://tavily.com) key.
 
 ```bash
 pnpm install
 pnpm exec playwright install chromium
 ```
 
-Add your keys to `.env.local` in the project root (see `.env.example` for the names):
+Create `.env.local` in the project root (names are in `.env.example`):
 
-| Variable | Default | Notes |
-|---|---|---|
-| `GROQ_API_KEY` | – | https://console.groq.com |
-| `TAVILY_API_KEY` | – | https://tavily.com (web search) |
-| `GROQ_MODEL_MAIN` | `llama-3.3-70b-versatile` | resume reading + final report |
-| `GROQ_MODEL_FAST` | `llama-3.1-8b-instant` | per-listing skill extraction |
-| `MAX_LISTINGS` | `20` | listings analysed per resume |
-| `SESSION_TTL_MINUTES` | `30` | sessions auto-delete after this |
-| `SCREENSHOT_TIMEOUT_MS` | `10000` | per proof screenshot |
+| Variable | Notes |
+|---|---|
+| `DATABASE_URL` | Neon connection string (`postgresql://…?sslmode=require`) |
+| `NEXTAUTH_URL` | `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | any long random string, e.g. `openssl rand -base64 32` |
+| `GROQ_API_KEY`, `TAVILY_API_KEY` | API keys |
+| `GROQ_MODEL_MAIN` | default `llama-3.3-70b-versatile` (we use `openai/gpt-oss-120b`) |
+| `GROQ_MODEL_FAST` | default `llama-3.1-8b-instant` (we use `openai/gpt-oss-20b`) |
+| `MAX_LISTINGS` | listings per analysis, default `20` |
+| `SCREENSHOT_TIMEOUT_MS` | per proof screenshot, default `10000` |
+| `SHOW_SYNTHETIC` | show seeded sample students to companies/colleges, default `true` |
 
-If a configured Groq model is not available on your account (Groq retires models from time to time), the app automatically falls back to another available chat model (e.g. `openai/gpt-oss-120b`, `openai/gpt-oss-20b`) and logs a one-line warning. The same fallback is used when one model hits its rate limit.
-
-Run it:
+If a configured Groq model is not available on your account, the app falls back to another available chat model automatically (also when one model hits its rate limit).
 
 ```bash
-pnpm dev                    # development, http://localhost:3000
-pnpm build && pnpm start    # production (recommended for the live demo)
+pnpm db:push     # create the tables in Neon
+pnpm seed        # sample college, companies, 60 synthetic students + 3 demo logins
+pnpm dev         # http://localhost:3000
 ```
 
-Run it locally. Playwright needs a real Chromium, so this app is not meant for serverless hosting.
+For the class demo use the production build: `pnpm build && pnpm start`.
 
-### Useful scripts
+Other scripts: `pnpm test` (vitest), `pnpm db:studio` (browse the DB), `pnpm sample-resume` (re-creates `scripts/fixtures/sample-resume.pdf`).
 
-| Command | What it does |
-|---|---|
-| `pnpm make-demo` | Runs one real live analysis of `demo/sample-resume.pdf` and saves it as the demo result (`demo/result.json` + `demo/shots/*.jpg`). |
-| `pnpm sample-resume` | Re-creates the fictional sample resume PDF. |
-| `pnpm tsx scripts/test-analyze.ts [file.pdf]` | Posts a PDF to the running server and prints the live progress events. |
-| `pnpm compress-bg` | Shrinks `public/bg.jpg` if it is over ~500 KB. |
+### Demo accounts (created by `pnpm seed`)
+
+Password for all three: **`KaamSetu@2026`**
+
+| Role | Email | Starts with |
+|---|---|---|
+| Student | `student.demo@kaamsetu.test` | linked to the demo college, a saved resume analysis, **not yet verified** (so you can take the test) |
+| Company | `company.demo@kaamsetu.test` | Nimbus Analytics, 2 open requirements, 20 visible verified candidates |
+| College | `college.demo@kaamsetu.test` | Kaveri Institute of Technology, join code **`KIT-7F3A9`**, 53 linked students |
+
+`pnpm seed` is idempotent: it only rewrites rows owned by the reserved `kaamsetu.test` domains and synthetic students (`is_synthetic = true`). Real users are never touched, and real sign-ups cannot use those domains. Seeded rows show an "Includes sample data" chip.
 
 ---
 
 ## How it works
 
-```
-PDF ──► pdf-parse (in memory) ──► Groq: roles, skills, education
-                                   │
-        Tavily search (job boards that allow automated reading, company ATS boards, open web)
-                                   │   filter: single listings only, skip login/bot-walled sites
-        Playwright opens each page ─► quick code checks (India? right role? entry level? still open?)
-                                   │
-        Groq (fast model, 3 at a time): title, company, skills + exact quote
-                                   │   every quote must exist in the page text, else dropped
-        Aggregate counts ─► strengths / skills to add / scores
-        Tavily ─► 2 real courses per missing skill (free first; hours only if stated)
-        Groq (main model) ─► impact + structure scores, one-line summary, extra ATS tips, relevance
-        Playwright ─► 3 proof screenshots (yellow <mark> on the sentence, 900×420 clip)
-```
+### Resume analysis (students)
+`POST /api/analyze` streams progress with Server-Sent Events:
+1. The PDF is parsed **in memory** (pdf-parse). Groq reads it: target roles, skills, education.
+2. Tavily finds live fresher listings in India; Playwright opens each page; cheap code checks skip closed, foreign, senior or wrong-role pages before any AI call.
+3. Groq (fast model, 3 at a time) extracts skills with an exact quote; **every quote is verified against the page text**.
+4. Skill counts → strengths, top 5 skills to add (2 real courses each, found by Tavily), ATS tips, score.
+5. 3 proof cards: real screenshots of the listing with the sentence highlighted.
+6. Saved to Postgres (latest analysis only). Screenshots are stored as compressed **webp in `analysis_shots`** and served only to their owner. A skills test is then pre-generated in the background.
 
-Progress is streamed to the browser with Server-Sent Events from `POST /api/analyze`.
+The raw PDF and raw resume text are **never stored**. Only structured data is kept, plus `redacted_highlights`: max 5 generic bullets written by Groq, then scrubbed by code (emails, phones, URLs, handles, the student's own name, email prefix and college name → the bullet is dropped).
 
-* **Scores:** Skills match (share of today's demand you cover, weighted by frequency) 40%, ATS readability (code checks) 20%, Impact & bullets (AI) 20%, Structure (AI + sections found) 20%.
-* **Proof cards:** the 3 skills with the highest frequency × relevance, at least 2 of them missing from the resume. If a page blocks the screenshot, the next listing for that skill is tried. If all fail, a text card shows the exact extracted sentence, labelled "Screenshot unavailable".
-* **Rate limits:** prompts are kept small (listing text is trimmed to the requirements part), Groq 429s are retried with exponential backoff, and other models are used as fallbacks.
+### Skills test
+- **Core skills:** testable resume skills that also appear in the analysed listings, ranked by demand then resume order, top 5 (min 3). 15 questions split 5×3, 4/4/4/3 or 3×5.
+- **Generation:** Groq main model writes scenario / code-output / debugging / trade-off MCQs (≈20% medium, 60% hard, 20% expert). A **blind solver** (fast model) answers each without the key; disagreements or ambiguity are regenerated (2 retries, then new angles). Question hashes are never reused for the same student. Options and question order are shuffled server-side.
+- **Taking it:** one question per screen, server-owned timer (30 min + 60 s grace, then auto-submit), autosave, flag for review. `correct_index` and explanations are never sent before submission.
+- **Integrity:** tab switches and pastes are counted; warning at 3, **flagged at 6** (no verification). No webcam.
+- **Rules** (`lib/server/testConfig.ts`): pass 11/15 (73%), distinction 13/15, a skill is verified with ≥ 2/3 of its questions, 3-day cooldown, max 3 attempts per 30 days, verification lasts 12 months.
 
-### Privacy Shield
+### Company matching
+`match % = Σ(weight × verified skill score) / Σ(weight) × 100` (unverified skills count as 0). Candidates missing a must-have are hidden unless "Show partial matches" is on. Companies only ever receive data built by **`toCompanyCandidateDTO()`** (anon code, graduation year, education level, test score, flags, per-skill scores, redacted highlights). Name and email appear **only after the student accepts an invite**. Invites are limited to 20 per company per day.
 
-* The resume is never written to disk (the upload is parsed in memory).
-* Results live in an in-memory session (a `globalThis` Map) and auto-delete after `SESSION_TTL_MINUTES`.
-* Proof screenshots are temp files in the OS temp folder, served only via random tokens (`/api/shot/<token>`).
-* **Delete my data** (results page and footer) calls `DELETE /api/session/<id>`, which wipes the session and its screenshot files immediately.
+### College insights
+Aggregates only. Any statistic based on **fewer than 5 students** is hidden ("Not enough data yet"; small counts show as "<5"). **Gap index = company demand % × (100 − average score %) / 100**; the top 5 are priority gaps, each with an AI workshop plan (cached in the DB).
+
+### Security
+- NextAuth credentials with bcrypt (cost 12), JWT session carrying `id` + `role`, httpOnly cookies.
+- `requireRole()` on every dashboard page and a role check on **every** API route (re-reads the user from the DB, so deleted accounts are locked out at once).
+- Rate limits: login 5 failures / 15 min per email + IP, test generation 3 / hour, analyses 6 / hour, invites 20 / day.
+- zod validation on every input, parametrised queries only (Drizzle), JSON-only writes, security headers, no secrets / resume text / answer keys in logs.
 
 ### Project structure
-
 ```
-pages/            index.tsx (single page), _app.tsx, _document.tsx
-pages/api/        analyze.ts (SSE pipeline), session/[id].ts (delete), shot/[token].ts (screenshots)
-components/       NavBar, Hero, HowItWorks, UploadZone, ProgressBridge, Results, ProofCard, Footer, ...
-lib/types.ts      types shared by UI and API
-lib/server/       server-only: groq, tavily, browser (Playwright), listings, skills, courses,
-                  report, proof, screenshot, sessions, shots, resume, upload, pipeline
-demo/             sample-resume.pdf, result.json + shots/ (pre-saved real run)
-scripts/          make-demo, make-sample-resume, test-analyze, compress-bg
+pages/                landing, login, signup, dashboard/{student,company,college}, student/test/[id]
+pages/api/            analyze, auth, student/*, company/*, college/*, account/password
+components/           UI (AnalysisFlow, Results, ProofCard, charts, student/*, company/*, …)
+lib/                  shared pure logic: scoring, coreSkills, redact, companyDto, collegeStats, validation
+lib/server/           server-only: db (Drizzle schema), auth, guard, groq, tavily, browser, pipeline,
+                      testGen, questionFactory, testRun, company, college, student
+scripts/              seed, fixtures, sample resume, test-analyze
+tests/                vitest unit tests
 ```
 
 ---
 
-## 2-minute demo script
+## 3-minute demo script
 
-**Before class:** run `pnpm build && pnpm start`, open http://localhost:3000 on the projector, and zoom the browser to 100–125%. Have `demo/sample-resume.pdf` (or a volunteer's resume) ready. Presenter keys: **D** = load the demo result instantly, **R** = reset to the start.
+Run `pnpm build && pnpm start`. Open three browser windows (or one normal + two private windows).
 
-| Time | Do | Say |
-|---|---|---|
-| 0:00 | Hero on screen. | "Every year lakhs of freshers don't know what employers actually want. KaamSetu bridges that gap using today's real job listings, not guesses." |
-| 0:15 | Scroll to *How it works*. | "Three steps: upload, our AI scans 20 live listings, you get a plan." |
-| 0:25 | Drop the resume in the upload box. Point at the privacy line. Click **Analyse my resume**. | "The resume stays in memory. Nothing is stored." |
-| 0:30 | The bridge builds plank by plank. | "Right now it's searching the web, opening each job page in a real browser, and reading the requirements. Every quote it extracts is checked against the page, so nothing is made up." |
-| ~1:30 | Results scroll in. Score ring counts up. | "Here's the score, and what it's made of." |
-| 1:40 | Click *Strengths*, then *Skills to add*. | "Excel is in 12 of 20 listings, and you have it. SQL is in 12 of 20 too, and it's missing. Here are two free courses for it." |
-| 1:50 | Click *Proof*, then open a screenshot. | "And here's the proof: a real listing, with the sentence highlighted." |
-| 1:55 | Click **Delete my data**. | "One click and everything is wiped." |
+| Time | Role | Do | Say |
+|---|---|---|---|
+| 0:00 | – | Landing page. | "KaamSetu connects freshers, companies and colleges through **verified** skills." |
+| 0:15 | Student | Log in as `student.demo@kaamsetu.test`. Overview → *Resume Analysis*. | "Aarav's resume was analysed against 20 live listings. Here's the score, missing skills with free courses, and real screenshots as proof." |
+| 0:45 | Student | *Verify My Skills* → read the rules → **Start the test**. Answer 1–2 questions, point at the timer and the code question. | "15 hard questions generated by AI and double-checked by a second AI. The timer runs on the server; answers autosave." |
+| 1:15 | Student | (Optional, if time) *Analyse a new resume* with `scripts/fixtures/sample-resume.pdf` to show the live bridge animation. | "This reads today's listings live: about a minute." |
+| 1:30 | Company | Log in as `company.demo@kaamsetu.test`. Switch requirement, show charts, open a candidate. | "Companies only see an anonymous code and verified scores, ranked by match to *their* requirement. No names, no college." |
+| 2:00 | Company | Send interest to a candidate. Scroll to *Accepted invites*. | "Contact details appear only after the student accepts." |
+| 2:20 | College | Log in as `college.demo@kaamsetu.test`. Overview trend → *Skill Gaps* → *Workshops* → **Suggest a workshop** on Docker. | "Colleges see cohort totals only, never individuals. Docker and System Design are the priority gaps, so here's a 1-day workshop plan." |
+| 2:50 | – | Back to the student's *Settings*: visibility toggle and the "How companies see you" preview. | "Students stay in control: hidden by default, visible only once verified." |
 
-**If the live run is slow or the Wi-Fi fails:** press **D** (or click *Switch to demo result*, shown after 90 s). The demo is a pre-saved real run and loads instantly.
+After the demo, run `pnpm seed` again to reset the demo accounts (the 3-day retake cooldown otherwise applies to the demo student).
 
 ---
 
-Built for **Engineering for Social Empowerment**. Edit the team names in `components/Footer.tsx`.
+## Known limitations
+
+- **No email verification and no password reset** yet (future work).
+- **Runs locally only**: Playwright needs a real Chromium, so serverless hosting (e.g. Vercel functions) is not supported.
+- **Groq free-tier limits** (≈8k tokens/minute per model, daily caps): an analysis uses ≈25–40k tokens and a test ≈15k. The app retries with backoff and rotates models, but heavy use can still hit limits.
+- Some job sites block automated browsers (e.g. Naukri, foundit), so listings come mostly from boards that allow it and company career pages.
+- Rate limits and background test generation are in-memory (single server process); a multi-server deploy would need Redis or a job queue.
+- Skill trends are a signal from today's listings, not a guarantee.

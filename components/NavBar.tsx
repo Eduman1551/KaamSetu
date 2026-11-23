@@ -34,11 +34,11 @@ export default function NavBar() {
   );
 }
 
-export function Logo({ href = '/' }: { href?: string }) {
+export function Logo({ href = '/', compact = false }: { href?: string; compact?: boolean }) {
   return (
     <Link href={href} className="flex items-center gap-2.5 rounded-lg" aria-label="KaamSetu home">
       <BridgeLogo width={34} height={24} />
-      <span className="font-heading text-lg font-bold tracking-tight">
+      <span className={`font-heading text-lg font-bold tracking-tight ${compact ? 'hidden sm:inline' : ''}`}>
         Kaam<span className="text-saffron">Setu</span>
       </span>
     </Link>

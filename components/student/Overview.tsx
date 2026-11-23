@@ -106,7 +106,7 @@ export default function Overview({ d, go }: { d: StudentData; go: (tab: string) 
                   <th className="px-5 py-2 font-medium">Skill</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                   <th className="px-3 py-2 text-right font-medium">Test score</th>
-                  <th className="px-5 py-2 text-right font-medium">On resume</th>
+                  <th className="hidden px-5 py-2 text-right font-medium sm:table-cell">On resume</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink/5">
@@ -127,7 +127,7 @@ export default function Overview({ d, go }: { d: StudentData; go: (tab: string) 
                       )}
                     </td>
                     <td className="num px-3 py-2.5 text-right font-mono">{s.scorePct != null ? `${s.scorePct}%` : '–'}</td>
-                    <td className="px-5 py-2.5 text-right text-ink/70">{s.inResume ? 'Yes' : 'No'}</td>
+                    <td className="hidden px-5 py-2.5 text-right text-ink/70 sm:table-cell">{s.inResume ? 'Yes' : 'No'}</td>
                   </tr>
                 ))}
               </tbody>
