@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { BadgeCheck, Check, ClipboardCheck, Copy, Gauge, GraduationCap, LogOut } from 'lucide-react';
+import { BadgeCheck, Check, ClipboardCheck, Copy, Gauge, GraduationCap } from 'lucide-react';
 import LightTheme from '@/components/LightTheme';
-import { Logo } from '@/components/NavBar';
+import DashBand from '@/components/DashBand';
+import { LogoutButton, NavyTopBar } from '@/components/DashboardLayout';
 import { EmptyState, Kpi, RoleChip, SampleChip, Skeleton } from '@/components/ui';
 import { fadeUp, stagger } from '@/components/motion';
 import { requireRole, type AuthUser } from '@/lib/server/guard';
@@ -32,7 +32,7 @@ function Bar({ label, value, note, tone }: { label: string; value: number; note:
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-[#F0E9DC]">
         <motion.div
-          className={`h-full rounded-full ${tone === 'gap' ? 'bg-miss' : 'bg-sky'}`}
+          className={`h-full rounded-full ${tone === 'gap' ? 'bg-miss' : 'bg-[#1E3A6E]'}`}
           initial={{ width: 0 }}
           whileInView={{ width: `${Math.max(2, value)}%` }}
           viewport={{ once: true }}
@@ -87,52 +87,37 @@ export default function CollegeDashboard({ d }: { user: AuthUser; d: Data }) {
         <title>{`${d.college.name} · KaamSetu`}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <header className="border-b border-sand bg-navy-800">
-        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <Logo href="/dashboard" compact />
-            <h1 className="truncate font-heading text-lg font-semibold sm:text-xl">{d.college.name}</h1>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={copy}
-              className="inline-flex items-center gap-2 rounded-full border border-sand bg-navy-950 px-3 py-1 text-sm transition-colors hover:border-saffron"
-              aria-label={`Copy join code ${d.college.joinCode}`}
-              title="Copy join code"
-            >
-              <span className="meta hidden sm:inline">Join code</span>
-              <span className="font-mono font-medium">{d.college.joinCode}</span>
-              {copied ? <Check size={14} className="text-teal" /> : <Copy size={14} className="text-ink/60" />}
-            </button>
-            <RoleChip role="college" />
-            <a
-              href="/api/auth/signout"
-              onClick={(e) => {
-                e.preventDefault();
-                signOut({ callbackUrl: '/' });
-              }}
-              className="inline-flex items-center gap-1.5 text-sm text-ink/75 hover:text-ink"
-            >
-              <LogOut size={15} aria-hidden /> <span className="hidden sm:inline">Log out</span>
-            </a>
-          </div>
-        </div>
-      </header>
+      <NavyTopBar>
+        <button
+          onClick={copy}
+          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-[#E8EEF8] transition-colors hover:border-[#FF9933]"
+          aria-label={`Copy join code ${d.college.joinCode}`}
+          title="Copy join code"
+        >
+          <span className="hidden text-[#A9B8D0] sm:inline">Join code</span>
+          <span className="font-mono font-medium">{d.college.joinCode}</span>
+          {copied ? <Check size={14} className="text-[#8FD3A6]" /> : <Copy size={14} className="text-[#A9B8D0]" />}
+        </button>
+        <RoleChip role="college" />
+        <LogoutButton />
+      </NavyTopBar>
 
-      <main className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
-          <p className="meta max-w-prose">Anonymous totals only. A skill is shown only when at least 5 of your students were tested on it.</p>
-          <SampleChip show={d.hasSynthetic} />
-        </div>
-
-        <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-6">
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <DashBand
+        title={d.college.name}
+        subtitle="Anonymous totals only. A skill appears only when at least 5 of your students were tested on it."
+        aside={<SampleChip show={d.hasSynthetic} />}
+        stats={
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Kpi label="Students linked" value={s.linked} icon={<GraduationCap size={20} />} tone="blue" />
             <Kpi label="Verified" value={pctOr(s.verifiedPct)} icon={<BadgeCheck size={20} />} tone="sage" />
             <Kpi label="Average test score" value={pctOr(s.avgScore)} icon={<Gauge size={20} />} tone="saffron" />
             <Kpi label="Took the test" value={pctOr(s.testedPct)} icon={<ClipboardCheck size={20} />} tone="blue" />
-          </motion.div>
+          </div>
+        }
+      />
 
+      <main className="mx-auto max-w-[1100px] px-4 pb-8 sm:px-6">
+        <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-6">
           {s.linked === 0 ? (
             <EmptyState title="No students linked yet">
               Share your join code <b className="font-mono">{d.college.joinCode}</b>. Students enter it when they sign up or in their Settings.

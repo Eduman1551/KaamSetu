@@ -10,7 +10,8 @@ import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getStudentDashboard } from '@/lib/server/student';
 import { generationProgress } from '@/lib/server/testGen';
 import { fetcher } from '@/lib/fetcher';
-import { Briefcase, FileText, LayoutDashboard, Mail, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Briefcase, FileText, Gauge, LayoutDashboard, Mail, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
+import { Kpi } from '@/components/ui';
 import Verify, { type TestRules } from '@/components/student/Verify';
 import Invites from '@/components/student/Invites';
 import DemandView from '@/components/student/Demand';
@@ -57,10 +58,35 @@ export default function StudentDashboard({ user, initial, rules }: { user: AuthU
 
   const nav = TABS.map((t) => ({ ...t, badge: t.id === 'invites' ? d.pendingInvites : undefined }));
   const title = TABS.find((t) => t.id === tab)!.label;
+  const SUBTITLES: Record<string, string> = {
+    overview: 'Your progress from resume to verified, at a glance.',
+    analysis: 'Your resume compared with today’s real job listings.',
+    verify: 'Pass the 15-question test to earn your Verified badge.',
+    demand: 'What companies on KaamSetu ask for most, compared with your verified skills.',
+    invites: 'Companies that want to talk to you.',
+    settings: 'Visibility, college link, password and account.',
+  };
+  const verifiedSkills = d.skills.filter((s) => s.verified).length;
+  const status = d.verification === 'distinction' ? 'Distinction' : d.verification === 'verified' ? 'Verified' : d.verification === 'expired' ? 'Expired' : 'Not yet';
+  const overviewStats = (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Kpi label="Resume score" value={d.analysis ? d.analysis.overallScore : '–'} icon={<Gauge size={20} />} tone="saffron" />
+      <Kpi label="Verification" value={status} icon={<ShieldCheck size={20} />} tone="sage" />
+      <Kpi label="Verified skills" value={verifiedSkills} icon={<BadgeCheck size={20} />} tone="sage" />
+      <Kpi label="Pending invites" value={d.pendingInvites} icon={<Mail size={20} />} tone="blue" />
+    </div>
+  );
 
   return (
-    <DashboardLayout title={title} role="student" userName={user.name} nav={nav} active={tab} onNav={go}>
-      <h1 className="page-title mb-5">{tab === 'overview' ? `Hi, ${user.name.split(' ')[0]}` : title}</h1>
+    <DashboardLayout
+      title={title}
+      role="student"
+      userName={user.name}
+      nav={nav}
+      active={tab}
+      onNav={go}
+      band={{ title: tab === 'overview' ? `Hi, ${user.name.split(' ')[0]}` : title, subtitle: SUBTITLES[tab], stats: tab === 'overview' ? overviewStats : undefined }}
+    >
       <AnimatePresence mode="wait">
         <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
           {tab === 'overview' && <Overview d={d} go={go} />}

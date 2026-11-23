@@ -186,3 +186,20 @@ h1, h2, h3, h4 {
 /* Long code tokens must never widen the page on phones. */
 .wrap-any { overflow-wrap: anywhere; word-break: break-word; }
 .card { min-width: 0; }
+
+/* ── Navy structure inside the light dashboards (sidebar, top bar, header band) ── */
+.theme-light .on-navy { color: #E8EEF8; }
+.theme-light .on-navy .logo-mark { color: #FFFFFF; }
+.theme-light .on-navy .text-saffron { color: #FF9933; }
+.theme-light .on-navy .text-sky { color: #9CC3EE; }
+.theme-light .on-navy .text-teal, .theme-light .on-navy .text-violet { color: #8FD3A6; }
+.theme-light .on-navy .bg-saffron\/15 { background-color: rgba(255, 153, 51, 0.16); }
+.theme-light .on-navy .bg-sky\/15 { background-color: rgba(96, 165, 250, 0.18); }
+.theme-light .on-navy .bg-teal\/15, .theme-light .on-navy .bg-violet\/15 { background-color: rgba(143, 211, 166, 0.16); }
+.theme-light .on-navy .btn-ghost { color: #E8EEF8; }
+.theme-light .on-navy .btn-ghost:hover:not(:disabled) { background: #13264D; color: #FFFFFF; }
+.theme-light .on-navy .border-sand, .theme-light .on-navy .border-ink\/10 { border-color: rgba(255, 255, 255, 0.14); }
+.theme-light .on-navy :focus-visible { outline-color: #FF9933; }
+
+/* Card titles and big numbers in navy. */
+.theme-light .card .card-title, .theme-light .card .h3, .theme-light .kpi-num, .theme-light .section-title { color: #0B1B3A; }

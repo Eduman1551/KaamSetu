@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import { LogOut, Menu, X } from 'lucide-react';
 import { Logo } from './NavBar';
 import LightTheme from './LightTheme';
+import DashBand from './DashBand';
 import { RoleChip, type RoleName } from './ui';
 
 export interface NavItem {
@@ -23,11 +24,33 @@ interface Props {
   onNav?: (id: string) => void;
   /** Right side of the top bar (e.g. sample-data chip). */
   topRight?: ReactNode;
+  /** Navy welcome band: title, subtitle and optional overlapping stat cards. */
+  band?: { title: string; subtitle?: ReactNode; stats?: ReactNode; aside?: ReactNode };
   children: ReactNode;
 }
 
-/** Light dashboard shell: white sidebar with sand border, light top bar, 1100px content. */
-export default function DashboardLayout({ title, role, userName, nav, active, onNav, topRight, children }: Props) {
+/** Shared navy top bar for every dashboard (white logo with saffron accent). */
+export function NavyTopBar({ children, left }: { children: ReactNode; left?: ReactNode }) {
+  return (
+    <header className="on-navy sticky top-0 z-40 border-b border-white/10 bg-[#0B1B3A]">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-2 px-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2">{left ?? <Logo href="/dashboard" compact />}</div>
+        <div className="flex items-center gap-1.5 sm:gap-3">{children}</div>
+      </div>
+    </header>
+  );
+}
+
+export function LogoutButton() {
+  return (
+    <button className="btn-ghost btn-sm" onClick={() => signOut({ callbackUrl: '/' })}>
+      <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">Log out</span>
+    </button>
+  );
+}
+
+/** Dashboard shell: navy sidebar + navy top bar (structure), warm ivory content. */
+export default function DashboardLayout({ title, role, userName, nav, active, onNav, topRight, band, children }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navList = nav && (
@@ -44,12 +67,12 @@ export default function DashboardLayout({ title, role, userName, nav, active, on
               }}
               aria-current={on ? 'page' : undefined}
               className={`flex w-full items-center gap-3 rounded-[10px] border-l-[3px] px-3 py-2 text-left text-[15px] transition-colors ${
-                on ? 'border-saffron bg-navy-700 font-medium text-saffron' : 'border-transparent text-ink/75 hover:bg-navy-950 hover:text-ink'
+                on ? 'border-[#FF9933] bg-[rgba(255,153,51,0.16)] font-medium text-[#FFB366]' : 'border-transparent text-[#E8EEF8] hover:bg-[#13264D]'
               }`}
             >
-              {Icon && <Icon size={18} strokeWidth={2} aria-hidden />}
+              {Icon && <Icon size={18} strokeWidth={2} aria-hidden className={on ? '' : 'text-[#A9B8D0]'} />}
               <span className="flex-1">{n.label}</span>
-              {!!n.badge && <span className="num rounded-full bg-saffron px-1.5 text-[12px] font-semibold text-navy">{n.badge}</span>}
+              {!!n.badge && <span className="num rounded-full bg-[#FF9933] px-1.5 text-[12px] font-semibold text-[#0B1B3A]">{n.badge}</span>}
             </button>
           </li>
         );
@@ -65,16 +88,18 @@ export default function DashboardLayout({ title, role, userName, nav, active, on
       </Head>
       <div className="flex min-h-screen">
         {nav && (
-          <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sand bg-navy-800 px-3 py-4 lg:flex">
-            <div className="mb-6 px-2">
-              <Logo href="/dashboard" />
-            </div>
-            <nav aria-label="Dashboard">{navList}</nav>
-          </aside>
+          <div className="hidden w-64 shrink-0 bg-[#0B1B3A] lg:block">
+            <aside className="on-navy sticky top-0 flex h-screen flex-col px-3 py-4">
+              <div className="mb-6 px-2">
+                <Logo href="/dashboard" />
+              </div>
+              <nav aria-label="Dashboard">{navList}</nav>
+            </aside>
+          </div>
         )}
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-40 border-b border-sand bg-navy/95 backdrop-blur">
-            <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between gap-2 px-3 sm:px-6">
+          <header className="on-navy sticky top-0 z-40 border-b border-white/10 bg-[#0B1B3A]">
+            <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-6">
               <div className="flex items-center gap-2">
                 {nav && (
                   <button className="btn-ghost btn-sm lg:hidden" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>
@@ -87,22 +112,21 @@ export default function DashboardLayout({ title, role, userName, nav, active, on
               </div>
               <div className="flex items-center gap-1.5 sm:gap-3">
                 {topRight}
-                <span className="hidden max-w-[200px] truncate text-sm text-ink/75 sm:inline" title={userName}>
+                <span className="hidden max-w-[200px] truncate text-sm text-[#C9D4E8] sm:inline" title={userName}>
                   {userName}
                 </span>
                 <RoleChip role={role} />
-                <button className="btn-ghost btn-sm" onClick={() => signOut({ callbackUrl: '/' })}>
-                  <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">Log out</span>
-                </button>
+                <LogoutButton />
               </div>
             </div>
             {nav && menuOpen && (
-              <nav className="border-t border-sand bg-navy-800 px-3 py-3 lg:hidden" aria-label="Dashboard">
+              <nav className="border-t border-white/10 bg-[#0B1B3A] px-3 py-3 lg:hidden" aria-label="Dashboard">
                 {navList}
               </nav>
             )}
           </header>
-          <main className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+          {band && <DashBand title={band.title} subtitle={band.subtitle} stats={band.stats} aside={band.aside} />}
+          <main className={`mx-auto max-w-[1100px] px-4 pb-8 sm:px-6 ${band ? '' : 'pt-6 sm:pt-8'}`}>{children}</main>
         </div>
       </div>
     </LightTheme>

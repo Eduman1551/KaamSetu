@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react';
 import Head from 'next/head';
-import { signOut } from 'next-auth/react';
 import useSWR from 'swr';
 import { motion } from 'framer-motion';
 import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getCompanyDashboard } from '@/lib/server/company';
-import { Logo } from '@/components/NavBar';
 import { Alert, Drawer, EmptyState, Kpi, RoleChip, SampleChip, Skeleton } from '@/components/ui';
 import { CHART, ChartCard, HBar, VBar } from '@/components/charts';
 import LightTheme from '@/components/LightTheme';
-import { BadgeCheck, ClipboardList, Gauge, Handshake, LogOut } from 'lucide-react';
+import DashBand from '@/components/DashBand';
+import { LogoutButton, NavyTopBar } from '@/components/DashboardLayout';
+import { BadgeCheck, ClipboardList, Gauge, Handshake } from 'lucide-react';
 import RequirementDrawer, { type RequirementRow } from '@/components/company/RequirementDrawer';
 import { fetcher, send } from '@/lib/fetcher';
 import { displaySkill } from '@/lib/skillNames';
@@ -167,44 +167,40 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="min-h-screen">
-        <header className="sticky top-0 z-40 border-b border-sand bg-navy-800/95 backdrop-blur">
-          <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-2 px-3 sm:px-6">
-            <Logo href="/dashboard" compact />
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="hidden max-w-[200px] truncate text-sm text-ink/80 md:inline">{d.company?.name ?? user.name}</span>
-              <RoleChip role="company" />
-              <button className="btn-primary btn-sm" onClick={() => setEditing('new')}>
-                <span className="sm:hidden">Post</span>
-                <span className="hidden sm:inline">Post requirement</span>
-              </button>
-              <button className="btn-ghost btn-sm" onClick={() => signOut({ callbackUrl: '/' })}>
-                <LogOut size={16} aria-hidden /> <span className="hidden sm:inline">Log out</span>
-              </button>
-            </div>
-          </div>
-        </header>
+        <NavyTopBar>
+          <span className="hidden max-w-[200px] truncate text-sm text-[#C9D4E8] md:inline">{d.company?.name ?? user.name}</span>
+          <RoleChip role="company" />
+          <button className="btn-primary btn-sm" onClick={() => setEditing('new')}>
+            <span className="sm:hidden">Post</span>
+            <span className="hidden sm:inline">Post requirement</span>
+          </button>
+          <LogoutButton />
+        </NavyTopBar>
 
-        <main className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="page-title">{d.company?.name ?? 'Company'} hiring dashboard</h1>
-            <SampleChip show={d.hasSynthetic} />
-          </div>
+        <DashBand
+          wide
+          title={`${d.company?.name ?? 'Company'} hiring dashboard`}
+          subtitle="Anonymous, test-verified candidates ranked against your own requirements."
+          aside={<span className="on-navy"><SampleChip show={d.hasSynthetic} /></span>}
+          stats={
+            <motion.div initial="hidden" animate="show" variants={stagger} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {(
+                [
+                  { label: 'Visible verified candidates', value: d.kpis.candidates, icon: <BadgeCheck size={20} />, tone: 'sage' },
+                  { label: 'Average overall test score', value: `${d.kpis.avgScore}%`, icon: <Gauge size={20} />, tone: 'saffron' },
+                  { label: 'Open requirements', value: d.kpis.openRequirements, icon: <ClipboardList size={20} />, tone: 'blue' },
+                  { label: 'Invites accepted', value: d.kpis.invitesAccepted, icon: <Handshake size={20} />, tone: 'sage' },
+                ] as const
+              ).map((k) => (
+                <motion.div key={k.label} variants={fadeUp}>
+                  <Kpi label={k.label} value={k.value} icon={k.icon} tone={k.tone} />
+                </motion.div>
+              ))}
+            </motion.div>
+          }
+        />
 
-          <motion.div initial="hidden" animate="show" variants={stagger} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {(
-              [
-                { label: 'Visible verified candidates', value: d.kpis.candidates, icon: <BadgeCheck size={20} />, tone: 'sage' },
-                { label: 'Average overall test score', value: `${d.kpis.avgScore}%`, icon: <Gauge size={20} />, tone: 'saffron' },
-                { label: 'Open requirements', value: d.kpis.openRequirements, icon: <ClipboardList size={20} />, tone: 'blue' },
-                { label: 'Invites accepted', value: d.kpis.invitesAccepted, icon: <Handshake size={20} />, tone: 'sage' },
-              ] as const
-            ).map((k) => (
-              <motion.div key={k.label} variants={fadeUp}>
-                <Kpi label={k.label} value={k.value} icon={k.icon} tone={k.tone} />
-              </motion.div>
-            ))}
-          </motion.div>
-
+        <main className="mx-auto max-w-[1280px] space-y-6 px-4 pb-8 sm:px-6">
           <section className="card flex flex-col gap-3 p-4 md:flex-row md:items-end">
             <div className="flex-1">
               <label htmlFor="req" className="label">
@@ -243,7 +239,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
                   data={d.analytics.demandSupply.map((s) => ({ ...s, skill: displaySkill(s.skill) }))}
                   x="verified"
                   y="skill"
-                  color={CHART.blue}
+                  color={CHART.navy}
                   highlight={(s: { verified: number }) => s.verified < 3}
                 />
               ) : (
@@ -254,7 +250,7 @@ export default function CompanyDashboard({ user, initial }: { user: AuthUser; in
               <HBar data={d.analytics.topSkills.map((s) => ({ ...s, skill: displaySkill(s.skill) }))} x="count" y="skill" />
             </ChartCard>
             <ChartCard title="Score distribution" note="Overall test score of visible candidates">
-              <VBar data={d.analytics.histogram} x="range" y="count" color={CHART.saffron} />
+              <VBar data={d.analytics.histogram} x="range" y="count" color={CHART.navy} />
             </ChartCard>
           </div>
 

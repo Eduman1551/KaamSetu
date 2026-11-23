@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 
 // Light dashboard palette: sage = verified, terracotta = gaps, saffron = primary, blue = demand.
-export const CHART = { sage: '#5E8C6A', terracotta: '#C8553D', saffron: '#E8842C', blue: '#4F7CAC' };
+export const CHART = { navy: '#1E3A6E', sage: '#5E8C6A', terracotta: '#C8553D', saffron: '#E8842C', blue: '#4F7CAC' };
 const AXIS = { stroke: '#9A8B7A', fontSize: 12 };
 const GRID = '#EFE7D9';
 const tooltipStyle = {

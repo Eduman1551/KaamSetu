@@ -205,7 +205,7 @@ export function Kpi({ label, value, hint, icon, tone = 'saffron' }: { label: str
       {icon && <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${TONES[tone]}`}>{icon}</span>}
       <div className="min-w-0">
       <p className="meta">{label}</p>
-      <p className="num mt-0.5 font-mono text-2xl font-semibold">{value}</p>
+      <p className={`kpi-num num mt-0.5 font-semibold ${typeof value === 'string' && !/\d/.test(value) ? 'font-heading text-xl' : 'font-mono text-2xl'}`}>{value}</p>
       {hint && <p className="meta mt-0.5">{hint}</p>}
       </div>
     </div>

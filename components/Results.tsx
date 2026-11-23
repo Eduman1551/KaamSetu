@@ -166,7 +166,7 @@ export default function Results({ result }: { result: AnalysisResult }) {
 
   return (
     <div id="results">
-      <div className="sticky top-2 z-30 mb-6 overflow-x-auto">
+      <div className="sticky top-16 z-30 mb-6 overflow-x-auto">
         <nav className="mx-auto flex w-max gap-1 rounded-xl border border-ink/15 bg-navy-950/90 p-1 shadow-glass backdrop-blur-xl" aria-label="Result sections">
           {NAV.map((n) => (
             <button

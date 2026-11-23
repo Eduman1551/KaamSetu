@@ -122,20 +122,20 @@ function Runner({ attemptId, live, onDone }: { attemptId: string; live: Live; on
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-ink/10 bg-navy/95 backdrop-blur">
+      <header className="on-navy sticky top-0 z-30 border-b border-white/10 bg-[#0B1B3A]">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between gap-3 px-4">
           <Logo href="/dashboard/student?tab=verify" />
           <div className="flex items-center gap-4">
-            <span className="meta num hidden sm:inline">
+            <span className="num hidden text-sm text-[#C9D4E8] sm:inline">
               {answered}/{qs.length} answered
             </span>
-            <span className={`num rounded-lg px-3 py-1 font-mono text-lg font-semibold ${low ? 'bg-miss/15 text-miss' : 'bg-ink/5'}`} role="timer" aria-label={`Time left ${mmss(left)}`}>
+            <span className={`num rounded-lg px-3 py-1 font-mono text-lg font-semibold ${low ? 'bg-[#C8553D] text-white' : 'bg-white/10 text-white'}`} role="timer" aria-label={`Time left ${mmss(left)}`}>
               {mmss(left)}
             </span>
           </div>
         </div>
-        <div className="h-1 bg-ink/10">
-          <div className="h-full bg-saffron transition-[width] duration-300" style={{ width: `${((i + 1) / qs.length) * 100}%` }} />
+        <div className="h-1 bg-white/10">
+          <div className="h-full bg-[#FF9933] transition-[width] duration-300" style={{ width: `${((i + 1) / qs.length) * 100}%` }} />
         </div>
       </header>
 
@@ -248,7 +248,7 @@ function ResultView({ r, passMark }: { r: Result; passMark: number }) {
   const tone = r.flagged ? 'text-miss' : r.verified ? 'text-teal' : 'text-saffron';
   return (
     <div className="min-h-screen">
-      <header className="border-b border-ink/10">
+      <header className="on-navy border-b border-white/10 bg-[#0B1B3A]">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Logo href="/dashboard/student" />
           <Link href="/dashboard/student?tab=verify" className="btn-ghost btn-sm">
