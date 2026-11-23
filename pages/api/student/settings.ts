@@ -5,7 +5,7 @@ import { getCompanyPreview, joinCollege, setVisibility } from '@/lib/server/stud
 
 const Body = z.union([
   z.object({ visible: z.boolean() }),
-  z.object({ joinCode: z.string().trim().toUpperCase().regex(/^([A-Z]{3}-[0-9A-F]{5})?$/, 'Join codes look like KIT-7F3A9.') }),
+  z.object({ joinCode: z.string().trim().toUpperCase().regex(/^([A-Z0-9]{2,6}-[A-Z0-9]{3,6})?$/, 'Join codes look like DEMO-2026 or KIT-7F3A9.') }),
 ]);
 
 export default handler('student', ['GET', 'PATCH'], async (req, _res, user) => {

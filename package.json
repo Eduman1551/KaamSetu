@@ -12,8 +12,10 @@
     "sample-resume": "tsx scripts/make-sample-resume.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:reset": "tsx --env-file=.env.local scripts/db-reset.ts",
+    "db:seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts",
+    "seed:sample": "tsx --env-file=.env.local scripts/seed-sample.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.1",

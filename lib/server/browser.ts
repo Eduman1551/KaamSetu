@@ -61,3 +61,10 @@ export async function fetchPageText(url: string, timeoutMs = 15_000): Promise<{ 
     await ctx.close().catch(() => {});
   }
 }
+
+/** Close the shared browser (scripts only). */
+export async function closeBrowser() {
+  const b = await g.__ksBrowser?.catch(() => null);
+  await b?.close().catch(() => {});
+  g.__ksBrowser = undefined;
+}

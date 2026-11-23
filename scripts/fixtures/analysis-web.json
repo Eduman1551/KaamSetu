@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-11-23T08:01:22.641Z",
+  "targetRoles": [
+    "Junior Web Developer",
+    "Frontend Developer"
+  ],
+  "educationLevel": "B.Tech Computer Science and Engineering (final year)",
+  "overallScore": 79,
+  "subScores": {
+    "skillsMatch": 58,
+    "atsReadability": 100,
+    "impact": 85,
+    "structure": 95
+  },
+  "summary": "You have strong core skills; learn CSS3 and add Responsive Design to match top job listings.",
+  "strengths": [
+    {
+      "skill": "JavaScript",
+      "count": 5
+    },
+    {
+      "skill": "REST APIs",
+      "count": 4
+    },
+    {
+      "skill": "HTML",
+      "count": 4
+    },
+    {
+      "skill": "Git",
+      "count": 3
+    },
+    {
+      "skill": "CSS",
+      "count": 2
+    },
+    {
+      "skill": "SQL",
+      "count": 2
+    },
+    {
+      "skill": "React",
+      "count": 2
+    }
+  ],
+  "skillsToAdd": [
+    {
+      "skill": "Python",
+      "count": 3,
+      "courses": [
+        {
+          "title": "Free Python Course for Beginners with Certificate [2026]",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/python-fundamentals-for-beginners",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Free Python Course with Certificate[2026]",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/learn-python-basics-free-course-skillup",
+          "free": true,
+          "hours": 11
+        }
+      ]
+    },
+    {
+      "skill": "WordPress",
+      "count": 3,
+      "courses": [
+        {
+          "title": "Learn WordPress Online for Free | Beginner Course",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/learn-wordpress-free-course-skillup",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "1-Hour Wordpress Basic Tutorial",
+          "platform": "Udemy",
+          "url": "https://www.udemy.com/course/1-hour-wordpress-basic-tutorial",
+          "free": true,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "CSS3",
+      "count": 2,
+      "courses": [
+        {
+          "title": "Learn HTML & CSS From Scratch! The Beginners Guide",
+          "platform": "Udemy",
+          "url": "https://www.udemy.com/course/learn-html-css-from-scratch-the-beginners-guide",
+          "free": true,
+          "hours": 25.5
+        },
+        {
+          "title": "Introduction to CSS3",
+          "platform": "Coursera",
+          "url": "https://www.coursera.org/learn/introcss",
+          "free": false,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Machine Learning",
+      "count": 2,
+      "courses": [
+        {
+          "title": "Build a Machine Learning Model",
+          "platform": "Codecademy",
+          "url": "https://www.codecademy.com/learn/paths/machine-learning",
+          "free": true,
+          "hours": 3
+        },
+        {
+          "title": "Machine Learning",
+          "platform": "Coursera",
+          "url": "https://www.coursera.org/specializations/machine-learning-introduction",
+          "free": false,
+          "hours": null
+        }
+      ]
+    },
+    {
+      "skill": "Generative AI",
+      "count": 2,
+      "courses": [
+        {
+          "title": "Free Generative AI Course for Beginners with Certificate [2026]",
+          "platform": "Great Learning",
+          "url": "https://www.mygreatlearning.com/academy/learn-for-free/courses/generative-ai-for-beginners",
+          "free": true,
+          "hours": null
+        },
+        {
+          "title": "Free Generative AI Course with Certificate [2026]",
+          "platform": "Simplilearn SkillUp",
+          "url": "https://www.simplilearn.com/free-generative-ai-course-skillup",
+          "free": true,
+          "hours": null
+        }
+      ]
+    }
+  ],
+  "atsTips": [
+    {
+      "pass": false,
+      "text": "Ensure 'REST APIs' is listed exactly as in listings."
+    },
+    {
+      "pass": true,
+      "text": "Email and phone number are easy to find."
+    },
+    {
+      "pass": true,
+      "text": "All key sections found: Education, Skills, Projects, Experience."
+    },
+    {
+      "pass": true,
+      "text": "Single-column text that ATS software can read in order."
+    },
+    {
+      "pass": true,
+      "text": "Good length (1 page)."
+    }
+  ],
+  "proofCards": [
+    {
+      "skill": "JavaScript",
+      "count": 5,
+      "total": 16,
+      "missing": false,
+      "scannedAt": "2026-11-23T08:01:16.387Z",
+      "shotUrl": null,
+      "company": "Digitrix Agency",
+      "jobTitle": "Full-stack Developer",
+      "url": "https://hiredoor.in/jobs/full-stack-developer-bc0a98",
+      "sentence": "Strong fundamentals in JavaScript, React, APIs and Git."
+    },
+    {
+      "skill": "Responsive Design",
+      "count": 2,
+      "total": 16,
+      "missing": true,
+      "scannedAt": "2026-11-23T08:01:16.387Z",
+      "shotUrl": null,
+      "company": "Appbrew",
+      "jobTitle": "Associate Software Engineer (Frontend)",
+      "url": "https://hiredoor.in/jobs/associate-software-engineer-frontend--d7d227",
+      "sentence": "HTML, CSS and CSS frameworks; responsive and mobile-first design."
+    },
+    {
+      "skill": "CSS3",
+      "count": 2,
+      "total": 16,
+      "missing": true,
+      "scannedAt": "2026-11-23T08:01:16.387Z",
+      "shotUrl": null,
+      "company": "Ignatiuz",
+      "jobTitle": "Junior Web Developer",
+      "url": "https://jobs.smartrecruiters.com/Ignatiuzcom/743999657461569-junior-web-developer",
+      "sentence": "Thorough understanding of JQuery, JS, HTML (All versions), XHTML, CSS3.0 etc."
+    }
+  ],
+  "listingsAnalyzed": {
+    "count": 16,
+    "sources": [
+      "hiredoor.in",
+      "jobs.smartrecruiters.com",
+      "internshala.com",
+      "shine.com"
+    ]
+  },
+  "coreSkills": [
+    "javascript",
+    "html",
+    "rest apis",
+    "git",
+    "react"
+  ],
+  "resumeSkills": [
+    "javascript",
+    "react",
+    "html",
+    "css",
+    "tailwind css",
+    "node.js",
+    "express",
+    "rest apis",
+    "sql",
+    "mysql",
+    "postgresql",
+    "git",
+    "vs code",
+    "postman"
+  ],
+  "highlights": [
+    "Built a full-stack portal used by 600+ students.",
+    "Cut page load time by 35% using lazy loading.",
+    "Shipped 6 responsive landing pages during internship.",
+    "Fixed 25+ UI bugs reported by clients.",
+    "Designed REST APIs and SQL schema for events."
+  ]
+}

@@ -21,7 +21,7 @@ export const StudentSignup = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^([A-Z]{3}-[0-9A-F]{5})?$/, 'Join codes look like KIT-7F3A9.')
+    .regex(/^([A-Z0-9]{2,6}-[A-Z0-9]{3,6})?$/, 'Join codes look like DEMO-2026 or KIT-7F3A9.')
     .optional()
     .default(''),
   consent: z.literal(true, { errorMap: () => ({ message: 'Please accept to continue.' }) }),
