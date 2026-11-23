@@ -1,65 +1,51 @@
-// One shared headless Chromium (Playwright), stored on globalThis so dev hot
-// reloads don't leak browsers. Used to read listing pages and take screenshots.
-import { chromium, type Browser, type BrowserContext } from 'playwright';
+// Headless Chromium for the 3 proof screenshots ONLY (listing text uses plain HTTP).
+//  - On Vercel (process.env.VERCEL): playwright-core + @sparticuz/chromium (Linux binary
+//    shipped with the function; Playwright's own browsers can't run there).
+//  - Locally: the normal Playwright Chromium (`pnpm exec playwright install chromium`).
+// Both are imported lazily, so a missing/broken browser never affects the rest of the app.
+import type { Browser, BrowserContext } from 'playwright-core';
 
+export type Launcher = 'sparticuz' | 'playwright';
+
+/** Pure helper (unit-tested): which browser to use for this environment. */
+export function pickLauncher(env: Record<string, string | undefined> = process.env): Launcher {
+  return env.VERCEL ? 'sparticuz' : 'playwright';
+}
+
+async function launch(): Promise<Browser> {
+  if (pickLauncher() === 'sparticuz') {
+    const [{ default: chromium }, { chromium: pw }] = await Promise.all([import('@sparticuz/chromium'), import('playwright-core')]);
+    return pw.launch({ args: chromium.args, executablePath: await chromium.executablePath(), headless: true });
+  }
+  const { chromium } = await import('playwright');
+  return chromium.launch({ headless: true, args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'] });
+}
+
+// Reused within one warm server instance (an optimisation only; nothing depends on it).
 const g = globalThis as unknown as { __ksBrowser?: Promise<Browser> };
-
-export const USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 export async function getBrowser(): Promise<Browser> {
   if (g.__ksBrowser) {
     const b = await g.__ksBrowser.catch(() => null);
     if (b && b.isConnected()) return b;
   }
-  g.__ksBrowser = chromium.launch({
-    headless: true,
-    args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
+  g.__ksBrowser = launch();
+  g.__ksBrowser.catch(() => {
+    g.__ksBrowser = undefined; // allow a retry next time
   });
   return g.__ksBrowser;
 }
 
-export async function newContext(opts: { forScreenshot?: boolean } = {}): Promise<BrowserContext> {
+export const USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+export async function newContext(): Promise<BrowserContext> {
   const browser = await getBrowser();
-  const ctx = await browser.newContext({
-    userAgent: USER_AGENT,
-    locale: 'en-IN',
-    viewport: { width: 1280, height: 900 },
-    deviceScaleFactor: opts.forScreenshot ? 1.5 : 1,
-    javaScriptEnabled: true,
-  });
+  const ctx = await browser.newContext({ userAgent: USER_AGENT, locale: 'en-IN', viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1.5 });
   // When run through tsx/esbuild (our scripts), functions passed to page.evaluate
   // reference an `__name` helper that doesn't exist in the page. Provide a no-op.
   await ctx.addInitScript({ content: 'window.__name = window.__name || function (f) { return f; };' });
-  if (!opts.forScreenshot) {
-    // Reading text only: skip images, fonts and media to load faster.
-    await ctx.route('**/*', (route) => {
-      const t = route.request().resourceType();
-      return ['image', 'media', 'font'].includes(t) ? route.abort() : route.continue();
-    });
-  }
   return ctx;
-}
-
-/**
- * Open a URL and return the visible text of the page ('' on failure), plus the
- * final URL after redirects (closed jobs often redirect to the company's job list).
- */
-export async function fetchPageText(url: string, timeoutMs = 15_000): Promise<{ text: string; finalUrl: string }> {
-  const ctx = await newContext();
-  try {
-    const page = await ctx.newPage();
-    const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-    if (!res || res.status() >= 400) return { text: '', finalUrl: url };
-    // Give client-rendered pages a moment to fill in.
-    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
-    const text = await page.evaluate(() => document.body?.innerText || '');
-    return { text, finalUrl: page.url() };
-  } catch {
-    return { text: '', finalUrl: url };
-  } finally {
-    await ctx.close().catch(() => {});
-  }
 }
 
 /** Close the shared browser (scripts only). */

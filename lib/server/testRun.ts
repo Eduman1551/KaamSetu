@@ -1,7 +1,7 @@
 // Taking a test. The server owns the clock and the answer key:
 // correct_index and explanation are only returned after submission.
 import { and, asc, eq, inArray } from 'drizzle-orm';
-import { db } from './db';
+import { db, dbTx } from './db';
 import { skillRecords, studentProfiles, testAttempts, testQuestions } from './db/schema';
 import { GRACE_SEC, TAB_SWITCH_FLAG, TAB_SWITCH_WARN, TEST_DURATION_SEC, VERIFICATION_MONTHS } from './testConfig';
 import { retakeStatus, scoreAttempt } from '@/lib/scoring';
@@ -133,7 +133,7 @@ export async function submitTest(studentId: string, attemptId: string, auto = fa
   const now = new Date();
   const expires = addMonths(now, VERIFICATION_MONTHS);
 
-  await db.transaction(async (tx) => {
+  await dbTx().transaction(async (tx) => {
     for (const q of graded) await tx.update(testQuestions).set({ isCorrect: q.isCorrect }).where(eq(testQuestions.id, q.id));
     await tx
       .update(testAttempts)

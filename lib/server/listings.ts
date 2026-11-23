@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { env } from './env';
 import { chatJSON } from './groq';
 import { tavilySearch, type TavilyResult } from './tavily';
-import { fetchPageText } from './browser';
+import { fetchListingText } from './pageText';
 import { isNoise, skillKey, textMentions } from './skills';
 
 // Job boards whose single-listing pages are public and readable by a headless browser.
@@ -237,7 +237,7 @@ export async function analyseListing(
   /** Optional pre-fetched page (the pipeline fetches a few pages ahead). */
   page?: Promise<{ text: string; finalUrl: string }>,
 ): Promise<{ listing: Listing | null; reason: string; dropped: number }> {
-  const { text, finalUrl } = await (page ?? fetchPageText(candidate.url, 10_000));
+  const { text, finalUrl } = await (page ?? fetchListingText(candidate.url, 10_000));
   if (redirectedAway(candidate.url, finalUrl)) return { listing: null, reason: 'job closed (redirected)', dropped: 0 };
   const skip = preCheck(text, candidate.title, words);
   if (skip) return { listing: null, reason: skip, dropped: 0 };

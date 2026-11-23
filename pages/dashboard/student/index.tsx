@@ -9,6 +9,7 @@ import type { StudentData } from '@/components/student/types';
 import { requireRole, type AuthUser } from '@/lib/server/guard';
 import { getStudentDashboard } from '@/lib/server/student';
 import { generationProgress } from '@/lib/server/testGen';
+import { getRunStatus } from '@/lib/server/analysisRuns';
 import { fetcher } from '@/lib/fetcher';
 import { BadgeCheck, Briefcase, FileText, Gauge, LayoutDashboard, Mail, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
 import { Kpi } from '@/components/ui';
@@ -19,7 +20,7 @@ import Settings from '@/components/student/Settings';
 import * as T from '@/lib/server/testConfig';
 
 export const getServerSideProps = requireRole('student', async (_ctx, user) => {
-  const data = { ...(await getStudentDashboard(user.id)), generation: generationProgress(user.id) };
+  const data = { ...(await getStudentDashboard(user.id)), generation: await generationProgress(user.id), run: await getRunStatus(user.id) };
   const rules: TestRules = {
     total: T.TOTAL_QUESTIONS,
     minutes: T.TEST_DURATION_SEC / 60,
@@ -90,7 +91,19 @@ export default function StudentDashboard({ user, initial, rules }: { user: AuthU
       <AnimatePresence mode="wait">
         <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
           {tab === 'overview' && <Overview d={d} go={go} />}
-          {tab === 'analysis' && <AnalysisFlow initialResult={d.analysis} onDone={() => mutate()} />}
+          {tab === 'analysis' && (
+            <AnalysisFlow
+              initialResult={d.analysis}
+              runningOnServer={d.run?.status === 'running'}
+              onDone={() => {
+                mutate();
+                // Prepare the skills test now (runs in its own request; the page doesn't wait).
+                void fetch('/api/test/prepare', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                  .then(() => mutate())
+                  .catch(() => {});
+              }}
+            />
+          )}
           {tab === 'verify' && <Verify d={d} rules={rules} refresh={() => mutate()} />}
           {tab === 'demand' && <DemandView go={go} />}
           {tab === 'invites' && <Invites onChange={() => mutate()} />}

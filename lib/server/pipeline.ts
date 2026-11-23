@@ -9,7 +9,7 @@ import { isNoise, skillDisplay, skillKey, textMentions } from './skills';
 import { findCourses } from './courses';
 import { writeReport } from './report';
 import { buildProofCards, type ProofCandidate } from './proof';
-import { fetchPageText } from './browser';
+import { fetchListingText } from './pageText';
 import { selectCoreSkills } from '@/lib/coreSkills';
 
 type Send = (ev: ProgressEvent) => void;
@@ -50,7 +50,12 @@ export interface PipelineOutput {
   highlights: string[];
 }
 
-export async function runPipeline(pdf: Buffer, send: Send, isCancelled: () => boolean): Promise<PipelineOutput> {
+export async function runPipeline(pdf: Buffer, send: Send, isCancelled: () => boolean, opts: { deadline?: number } = {}): Promise<PipelineOutput> {
+  // Time budget (serverless functions have a hard limit): stop scanning early and skip
+  // screenshots when time runs short, so the run always finishes and saves.
+  const t0 = Date.now();
+  const deadline = opts.deadline ?? Number.POSITIVE_INFINITY;
+  const scanUntil = Number.isFinite(deadline) ? t0 + (deadline - t0) * 0.62 : Number.POSITIVE_INFINITY;
   const step = (id: string, label: string, status: 'active' | 'done' = 'active') => send({ type: 'step', id, label, status });
   const progress = (pct: number) => send({ type: 'progress', pct: Math.round(pct) });
   const checkCancel = () => {
@@ -98,13 +103,13 @@ export async function runPipeline(pdf: Buffer, send: Send, isCancelled: () => bo
     // Page loads are slow, AI calls are rate-limited: open a few pages ahead of the
     // 3 AI workers so they never sit waiting for a browser.
     const PREFETCH = 3;
-    const pageLoads = new Map<number, ReturnType<typeof fetchPageText>>();
+    const pageLoads = new Map<number, ReturnType<typeof fetchListingText>>();
     const pageFor = (i: number) => {
-      if (i < candidates.length && !pageLoads.has(i)) pageLoads.set(i, fetchPageText(candidates[i].url, 10_000));
+      if (i < candidates.length && !pageLoads.has(i)) pageLoads.set(i, fetchListingText(candidates[i].url, 10_000));
       return pageLoads.get(i);
     };
     const worker = async () => {
-      while (next < candidates.length && listings.length < max && !isCancelled()) {
+      while (next < candidates.length && listings.length < max && !isCancelled() && !(Date.now() > scanUntil && listings.length >= 5)) {
         const i = next++;
         const c = candidates[i];
         for (let k = 1; k <= PREFETCH; k++) if (listings.length + k < max) pageFor(i + k);
@@ -230,7 +235,7 @@ export async function runPipeline(pdf: Buffer, send: Send, isCancelled: () => bo
     }));
     waitingLabel = 'Taking proof screenshots…';
     step('shots', 'Taking proof screenshots…');
-    const { cards: proofCards, shots } = await buildProofCards(proofCandidates, total, isCancelled);
+    const { cards: proofCards, shots } = await buildProofCards(proofCandidates, total, isCancelled, deadline);
     const captured = shots.filter(Boolean).length;
     step('shots', `Captured ${captured} of ${proofCards.length} proof screenshots`, 'done');
     progress(99);

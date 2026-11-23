@@ -50,6 +50,7 @@ export async function buildProofCards(
   cands: ProofCandidate[],
   total: number,
   isCancelled: () => boolean,
+  deadline = Number.POSITIVE_INFINITY,
 ): Promise<{ cards: ProofCardData[]; shots: (Buffer | null)[] }> {
   const chosen = pickProofSkills(cands);
   const scannedAt = new Date().toISOString();
@@ -69,8 +70,10 @@ export async function buildProofCards(
       const base = { skill: c.skill, count: c.count, total, missing: c.missing, scannedAt, shotUrl: null };
       // Try the best listing first; if blocked or the sentence can't be found, try the next one.
       for (const ev of orders[i].slice(0, MAX_TRIES_PER_SKILL)) {
-        if (isCancelled()) break;
-        const jpg = await captureProof(ev.url, ev.quote, env.screenshotTimeoutMs);
+        // Not enough time left for another page: use the text card.
+        if (isCancelled() || Date.now() + env.screenshotTimeoutMs + 8000 > deadline) break;
+        // captureProof never throws: a browser that can't launch just means a text card.
+        const jpg = await captureProof(ev.url, ev.quote, env.screenshotTimeoutMs).catch(() => null);
         if (jpg) return { card: { ...base, company: ev.company, jobTitle: ev.jobTitle, url: ev.url, sentence: ev.sentence }, shot: jpg };
       }
       // All failed: text card with the exact extracted sentence.

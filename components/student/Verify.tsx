@@ -33,26 +33,44 @@ export default function Verify({ d, rules, refresh }: { d: StudentData; rules: T
   // While a test is being prepared, poll the dashboard data for progress.
   useEffect(() => {
     if (!preparing) return;
-    const t = setInterval(refresh, 2500);
+    const t = setInterval(refresh, 2000);
     return () => clearInterval(t);
   }, [preparing, refresh]);
-  useEffect(() => {
-    if (preparing && gen && gen.done >= gen.total && !gen.error) start();
-    if (preparing && gen?.error) {
+
+  const goToTest = (id: string) => {
+    void router.push(`/dashboard/student/test/${id}`);
+  };
+
+  /** Ask the server to prepare the test (runs inside that request), then start it. */
+  async function prepareAndStart(tries = 0): Promise<void> {
+    try {
+      const p = await send<{ status: 'ready' | 'generating' | 'blocked'; reason?: string }>('/api/test/prepare', 'POST');
+      if (p.status === 'blocked') {
+        setPreparing(false);
+        setError(p.reason ?? 'Your test could not be prepared right now.');
+        return;
+      }
+      if (p.status === 'ready') {
+        const r = await send<{ attemptId: string | null }>('/api/student/test/start', 'POST');
+        if (r.attemptId) return goToTest(r.attemptId);
+      }
+      // Another request is still generating it: check again shortly.
+      if (tries < 60) setTimeout(() => prepareAndStart(tries + 1), 3000);
+      else throw new Error('Preparing your test is taking too long. Please try again.');
+    } catch (e) {
       setPreparing(false);
-      setError(gen.error);
+      setError((e as Error).message);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gen?.done, gen?.error]);
+  }
 
   async function start() {
     setBusy(true);
     setError(null);
     try {
-      const r = await send<{ attemptId: string | null; preparing?: boolean; reason?: string | null }>('/api/student/test/start', 'POST');
-      if (r.attemptId) return router.push(`/dashboard/student/test/${r.attemptId}`);
-      if (r.preparing) setPreparing(true);
-      else setError(r.reason ?? 'Your test could not be prepared right now.');
+      const r = await send<{ attemptId: string | null }>('/api/student/test/start', 'POST');
+      if (r.attemptId) return goToTest(r.attemptId);
+      setPreparing(true);
+      void prepareAndStart();
     } catch (e) {
       setError((e as Error).message);
     } finally {

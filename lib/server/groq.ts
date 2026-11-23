@@ -147,8 +147,10 @@ export async function chatJSON<T extends z.ZodTypeAny>(o: Opts<T>): Promise<z.in
       }
       if (!(err instanceof SyntaxError) && status !== 400) break; // other errors: give up
     }
-    // Malformed / invalid JSON (or json_validate_failed): retry once, then give up.
-    if (++badAnswers > 1) break;
+    // Malformed / invalid JSON (or json_validate_failed): retry, moving to the next
+    // model in the pool each time; give up after 3 bad answers.
+    if (++badAnswers > 2) break;
+    if (pool.length > 1) pool.push(pool.splice(pool.indexOf(model), 1)[0]);
   }
   throw lastErr instanceof Error ? lastErr : new Error('AI request failed');
 }

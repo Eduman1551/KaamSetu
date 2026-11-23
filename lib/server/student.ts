@@ -2,7 +2,7 @@
 // read their own rows through these functions.
 import sharp from 'sharp';
 import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
-import { db } from './db';
+import { db, dbTx } from './db';
 import {
   analyses,
   analysisShots,
@@ -33,7 +33,7 @@ export async function saveAnalysis(userId: string, out: PipelineOutput): Promise
   const webps = await Promise.all(out.shots.map((s) => (s ? sharp(s).webp({ quality: 70 }).toBuffer() : null)));
   const stored: StoredAnalysis = { ...out.result, coreSkills: out.coreSkills };
 
-  await db.transaction(async (tx) => {
+  await dbTx().transaction(async (tx) => {
     await tx.delete(analyses).where(eq(analyses.studentId, userId)); // cascades old screenshots
     const [a] = await tx.insert(analyses).values({ studentId: userId, result: stored }).returning({ id: analyses.id });
     const v = a.id.slice(0, 8); // cache-buster so a new analysis never shows an old image
@@ -73,7 +73,8 @@ export async function saveAnalysis(userId: string, out: PipelineOutput): Promise
 }
 
 export async function getShot(userId: string, idx: number) {
-  const [row] = await db
+  // bytea: read through the Pool client (returns a Buffer).
+  const [row] = await dbTx()
     .select({ bytes: analysisShots.bytes })
     .from(analysisShots)
     .innerJoin(analyses, eq(analyses.id, analysisShots.analysisId))

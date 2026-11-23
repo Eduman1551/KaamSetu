@@ -1,7 +1,7 @@
 // Real screenshot of a live listing: open the page, find the sentence that
 // mentions the skill, highlight it with a yellow <mark>, scroll to it and
 // capture a ~900x420 region around it.
-import type { Page } from 'playwright';
+import type { BrowserContext, Page } from 'playwright-core';
 import { newContext } from './browser';
 
 export const SHOT_W = 900;
@@ -86,7 +86,14 @@ async function highlight(page: Page, quote: string) {
 
 /** Capture one proof screenshot. Returns the JPEG bytes, or null on any failure. */
 export async function captureProof(url: string, quote: string, timeoutMs: number): Promise<Buffer | null> {
-  const ctx = await newContext({ forScreenshot: true });
+  // If the browser can't launch (e.g. missing binary), return null -> text proof card.
+  let ctx: BrowserContext;
+  try {
+    ctx = await newContext();
+  } catch (e) {
+    console.warn('[shot] browser unavailable:', String((e as Error)?.message ?? e).split('\n')[0]);
+    return null;
+  }
   const work = (async () => {
     const page = await ctx.newPage();
     const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });

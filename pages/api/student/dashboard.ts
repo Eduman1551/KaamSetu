@@ -3,11 +3,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiUser, methods } from '@/lib/server/guard';
 import { getStudentDashboard } from '@/lib/server/student';
 import { generationProgress } from '@/lib/server/testGen';
+import { getRunStatus } from '@/lib/server/analysisRuns';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!methods(req, res, ['GET'])) return;
   const user = await apiUser(req, res, 'student');
   if (!user) return;
   res.setHeader('Cache-Control', 'no-store');
-  return res.json({ ...(await getStudentDashboard(user.id)), generation: generationProgress(user.id) });
+  return res.json({ ...(await getStudentDashboard(user.id)), generation: await generationProgress(user.id), run: await getRunStatus(user.id) });
 }

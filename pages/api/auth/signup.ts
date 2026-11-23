@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { db } from '@/lib/server/db';
+import { db, dbTx } from '@/lib/server/db';
 import { colleges, companies, studentProfiles, users } from '@/lib/server/db/schema';
 import { SignupSchema } from '@/lib/validation';
 import { isReservedEmail, newAnonCode, newJoinCode } from '@/lib/server/codes';
@@ -12,7 +12,7 @@ import { isLimited, record } from '@/lib/server/rateLimit';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!methods(req, res, ['POST'])) return;
   const ip = String(req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? 'local').split(',')[0];
-  if (isLimited(`signup:${ip}`, 10, 3600_000)) return res.status(429).json({ error: 'Too many sign-ups from this network. Try again later.' });
+  if (await isLimited(`signup:${ip}`, 10, 3600_000)) return res.status(429).json({ error: 'Too many sign-ups from this network. Try again later.' });
 
   const parsed = SignupSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -32,11 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     collegeId = c.id;
   }
 
-  record(`signup:${ip}`);
+  await record(`signup:${ip}`, 3600_000);
   const passwordHash = await bcrypt.hash(input.password, 12);
   const displayName = input.role === 'student' ? input.name : input.role === 'company' ? `${input.companyName} hiring team` : input.collegeName;
 
-  await db.transaction(async (tx) => {
+  await dbTx().transaction(async (tx) => {
     const [u] = await tx.insert(users).values({ email: input.email, passwordHash, role: input.role, name: displayName }).returning({ id: users.id });
     if (input.role === 'student') {
       await tx.insert(studentProfiles).values({ userId: u.id, collegeId, gradYear: input.gradYear, educationLevel: input.educationLevel, anonCode: newAnonCode() });

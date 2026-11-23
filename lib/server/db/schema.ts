@@ -24,7 +24,8 @@ const bytea = customType<{ data: Buffer; driverData: Buffer }>({
 const ts = (name: string) => timestamp(name, { withTimezone: true });
 
 export const roleEnum = pgEnum('role', ['student', 'company', 'college']);
-export const attemptStatusEnum = pgEnum('attempt_status', ['ready', 'in_progress', 'submitted', 'expired', 'flagged']);
+export const attemptStatusEnum = pgEnum('attempt_status', ['generating', 'ready', 'in_progress', 'submitted', 'expired', 'flagged']);
+export const runStatusEnum = pgEnum('run_status', ['running', 'done', 'failed']);
 export const difficultyEnum = pgEnum('difficulty', ['medium', 'hard', 'expert']);
 export const experienceEnum = pgEnum('experience_level', ['fresher', '0-2y']);
 export const requirementStatusEnum = pgEnum('requirement_status', ['open', 'closed']);
@@ -160,6 +161,8 @@ export const testAttempts = pgTable(
     skills: jsonb('skills').$type<AttemptSkill[]>().notNull(),
     tabSwitches: integer('tab_switches').default(0).notNull(),
     flagged: boolean('flagged').default(false).notNull(),
+    /** Questions generated so far while status = 'generating'. */
+    progress: integer('progress').default(0).notNull(),
     createdAt: ts('created_at').defaultNow().notNull(),
   },
   (t) => [index('test_attempts_student_idx').on(t.studentId)],
@@ -265,3 +268,21 @@ export const workshops = pgTable(
   },
   (t) => [unique('workshops_college_skill_uq').on(t.collegeId, t.skill)],
 );
+
+/** Status of the student's latest analysis run (so a dropped stream can recover by polling). */
+export const analysisRuns = pgTable('analysis_runs', {
+  studentId: uuid('student_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  status: runStatusEnum('status').notNull(),
+  error: text('error'),
+  startedAt: ts('started_at').defaultNow().notNull(),
+  updatedAt: ts('updated_at').defaultNow().notNull(),
+});
+
+/** Fixed-window rate limit counters (shared by every server instance). */
+export const rateLimits = pgTable('rate_limits', {
+  key: text('key').primaryKey(),
+  windowStart: ts('window_start').notNull(),
+  count: integer('count').notNull(),
+});

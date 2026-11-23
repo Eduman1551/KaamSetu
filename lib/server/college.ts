@@ -98,35 +98,22 @@ JSON: {"title":"short title","topics":["exactly 3 concrete hands-on topics"],"du
   });
 }
 
-const g = globalThis as unknown as { __ksWorkshopJobs?: Map<string, Promise<unknown>> };
-const jobs = g.__ksWorkshopJobs ?? (g.__ksWorkshopJobs = new Map());
-
 /**
  * Make sure each priority gap has a plan for the current data (generated the first
- * time the data changes meaningfully, then cached). One run per college at a time.
+ * time the data changes meaningfully, then cached in the DB). Stateless: if two
+ * requests race, both upsert the same row, which is harmless.
  */
 export async function ensureWorkshops(collegeId: string) {
-  const running = jobs.get(collegeId);
-  if (running) await running.catch(() => {});
-  else {
-    const job = (async () => {
-      const summary = await getCollegeSummary(collegeId);
-      for (let i = 0; i < summary.gaps.length; i++) {
-        if (summary.plans[i]) continue;
-        const gap = summary.gaps[i];
-        const plan = await generatePlan(gap); // sequential: Groq free tier
-        await db
-          .insert(workshops)
-          .values({ collegeId, skill: gap.skill, plan, signature: workshopSignature(gap) })
-          .onConflictDoUpdate({ target: [workshops.collegeId, workshops.skill], set: { plan, signature: workshopSignature(gap), createdAt: new Date() } });
-      }
-    })();
-    jobs.set(collegeId, job);
-    try {
-      await job;
-    } finally {
-      jobs.delete(collegeId);
-    }
+  const summary = await getCollegeSummary(collegeId);
+  for (let i = 0; i < summary.gaps.length; i++) {
+    if (summary.plans[i]) continue;
+    const gap = summary.gaps[i];
+    const plan = await generatePlan(gap); // sequential: Groq free tier
+    await db
+      .insert(workshops)
+      .values({ collegeId, skill: gap.skill, plan, signature: workshopSignature(gap) })
+      .onConflictDoUpdate({ target: [workshops.collegeId, workshops.skill], set: { plan, signature: workshopSignature(gap), createdAt: new Date() } });
+    summary.plans[i] = plan;
   }
-  return (await getCollegeSummary(collegeId)).plans;
+  return summary.plans;
 }

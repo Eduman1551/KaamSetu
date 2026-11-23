@@ -35,17 +35,17 @@ export const authOptions: NextAuthOptions = {
         if (!parsed.success) throw new Error('Enter a valid email and password.');
         const { email, password } = parsed.data;
         const key = `login:${email}:${clientIp(req?.headers as Record<string, unknown>)}`;
-        if (isLimited(key, LOGIN_LIMIT.max, LOGIN_LIMIT.windowMs)) {
+        if (await isLimited(key, LOGIN_LIMIT.max, LOGIN_LIMIT.windowMs)) {
           throw new Error('Too many failed attempts. Please wait 15 minutes and try again.');
         }
         const [user] = await db.select().from(users).where(eq(users.email, email));
         // Synthetic seed accounts have a non-bcrypt hash and can never log in.
         const ok = !!user && user.passwordHash.startsWith('$2') && (await bcrypt.compare(password, user.passwordHash));
         if (!ok) {
-          record(key);
+          await record(key, LOGIN_LIMIT.windowMs);
           throw new Error('Incorrect email or password.');
         }
-        reset(key);
+        await reset(key);
         await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
         return { id: user.id, email: user.email, name: user.name, role: user.role };
       },

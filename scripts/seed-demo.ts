@@ -8,7 +8,7 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import sharp from 'sharp';
 import { eq } from 'drizzle-orm';
-import { closeDb, db } from '../lib/server/db';
+import { closeDb, db, dbTx } from '../lib/server/db';
 import {
   analyses,
   analysisShots,
@@ -107,7 +107,7 @@ async function main() {
   for (let i = 0; i < 3; i++) {
     const file = path.join('scripts', 'fixtures', 'analysis-web-shots', `${i}.jpg`);
     if (fs.existsSync(file)) {
-      await db.insert(analysisShots).values({ analysisId: an.id, idx: i, bytes: await sharp(fs.readFileSync(file)).webp({ quality: 70 }).toBuffer() });
+      await dbTx().insert(analysisShots).values({ analysisId: an.id, idx: i, bytes: await sharp(fs.readFileSync(file)).webp({ quality: 70 }).toBuffer() });
       result.proofCards[i].shotUrl = `/api/student/shot/${i}?v=${v}`;
     } else result.proofCards[i].shotUrl = null;
   }

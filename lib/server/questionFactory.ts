@@ -14,16 +14,19 @@ export interface Question {
   explanation: string;
 }
 
+const QuestionItem = z.object({
+  question: z.string().min(20).max(3000),
+  options: z.array(z.coerce.string().min(1).max(600)).length(4),
+  correctIndex: z.coerce.number().int().min(0).max(3),
+  explanation: z.string().min(10).max(1000),
+  difficulty: z.enum(['medium', 'hard', 'expert']).catch('hard'),
+});
+
+/** Lenient: invalid questions are dropped one by one (their slots are regenerated). */
 export const GeneratedSchema = z.object({
-  questions: z.array(
-    z.object({
-      question: z.string().min(20).max(1500),
-      options: z.array(z.string().min(1).max(300)).length(4),
-      correctIndex: z.coerce.number().int().min(0).max(3),
-      explanation: z.string().min(10).max(500),
-      difficulty: z.enum(['medium', 'hard', 'expert']).catch('hard'),
-    }),
-  ),
+  questions: z
+    .array(z.unknown())
+    .transform((items) => items.map((i) => QuestionItem.safeParse(i)).flatMap((r) => (r.success ? [r.data] : []))),
 });
 export type Generated = z.infer<typeof GeneratedSchema>;
 
@@ -82,7 +85,11 @@ export async function makeVerifiedQuestions(
 
   /** Generate a batch, keep the ones that pass rules, hash checks and the blind solver. */
   const attempt = async (diffs: Difficulty[], angle?: string): Promise<Difficulty[]> => {
-    const gen = await deps.generate({ skill, difficulties: diffs, angle, avoidStems: stems });
+    // A failed AI call just means every slot in this batch is retried in the next round.
+    const gen = await deps.generate({ skill, difficulties: diffs, angle, avoidStems: stems }).catch((e) => {
+      console.warn('[testgen] generate failed, retrying:', String((e as Error)?.message ?? e).slice(0, 120));
+      return { questions: [] as Generated['questions'] };
+    });
     const failed: Difficulty[] = [];
     const candidates: Question[] = [];
     diffs.forEach((d, i) => {
@@ -96,10 +103,12 @@ export async function makeVerifiedQuestions(
     });
     if (candidates.length) {
       // Blind check: the second model never sees the answer key.
-      const solved = await deps.solve(
-        skill,
-        candidates.map((c) => ({ question: c.question, options: c.options })),
-      );
+      const solved = await deps
+        .solve(
+          skill,
+          candidates.map((c) => ({ question: c.question, options: c.options })),
+        )
+        .catch(() => ({ answers: [] as Solved['answers'] })); // unverified -> regenerate
       candidates.forEach((c, i) => {
         const s = solved.answers[i];
         const h = questionHash(c);

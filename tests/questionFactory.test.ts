@@ -125,3 +125,25 @@ describe('question rules', () => {
     }
   });
 });
+
+describe('resilience', () => {
+  it('drops malformed questions individually and regenerates their slots', async () => {
+    const { GeneratedSchema } = await import('@/lib/server/questionFactory');
+    const parsed = GeneratedSchema.parse({ questions: [q(1), { question: 'too short', options: ['a'] }, q(1)] });
+    expect(parsed.questions).toHaveLength(2);
+  });
+
+  it('a failed AI call retries instead of failing the whole test', async () => {
+    let calls = 0;
+    const deps: Deps = {
+      generate: vi.fn(async (r: GenRequest) => {
+        if (calls++ === 0) throw Object.assign(new Error('json_validate_failed'), { status: 400 });
+        return { questions: r.difficulties.map(() => q(1)) };
+      }),
+      solve: vi.fn(async (_s, qs) => ({ answers: qs.map(() => ({ answer: 1, ambiguous: false })) })),
+    };
+    const out = await makeVerifiedQuestions('react', ['hard', 'hard', 'expert'], new Set(), deps);
+    expect(out).toHaveLength(3);
+    expect(deps.generate).toHaveBeenCalledTimes(2);
+  });
+});

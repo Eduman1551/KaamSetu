@@ -1,7 +1,8 @@
-// Skills-test generation: runs in the background after an analysis (or on demand)
-// and stores a 'ready' attempt. Nothing is sent to the client here.
+// Skills-test generation. Stateless (serverless-safe): an attempt row with status
+// 'generating' is the lock and holds the progress; the whole generation runs inside the
+// POST /api/test/prepare request (maxDuration 300 s). Nothing is sent to the client here.
 import { and, eq, inArray, lt } from 'drizzle-orm';
-import { db } from './db';
+import { db, dbTx } from './db';
 import { analyses, testAttempts, testQuestions } from './db/schema';
 import { env } from './env';
 import { chatJSON } from './groq';
@@ -27,16 +28,8 @@ export interface GenerationProgress {
   error: string | null;
 }
 
-const g = globalThis as unknown as { __ksGen?: Map<string, GenerationProgress & { running: boolean }> };
-const jobs = g.__ksGen ?? (g.__ksGen = new Map());
-
-export function generationProgress(studentId: string): GenerationProgress | null {
-  const j = jobs.get(studentId);
-  return j ? { done: j.done, total: j.total, error: j.error } : null;
-}
-export function isGenerating(studentId: string) {
-  return !!jobs.get(studentId)?.running;
-}
+/** A 'generating' row older than this is a crashed/timed-out run and is discarded. */
+const STALE_GENERATION_MS = 6 * 60_000;
 
 /** The Groq-backed generator + blind solver. */
 export const groqDeps: Deps = {
@@ -72,13 +65,16 @@ JSON: {"answers":[{"answer":0,"ambiguous":false}]}`,
     }),
 };
 
-/** Expire 'ready' tests older than 24 h. */
+/** Expire 'ready' tests older than 24 h and drop stale 'generating' rows. */
 export async function expireStaleReady(studentId: string) {
   const cutoff = new Date(Date.now() - READY_TEST_TTL_HOURS * 3600_000);
   await db
     .update(testAttempts)
     .set({ status: 'expired' })
     .where(and(eq(testAttempts.studentId, studentId), eq(testAttempts.status, 'ready'), lt(testAttempts.generatedAt, cutoff)));
+  await db
+    .delete(testAttempts)
+    .where(and(eq(testAttempts.studentId, studentId), eq(testAttempts.status, 'generating'), lt(testAttempts.generatedAt, new Date(Date.now() - STALE_GENERATION_MS))));
 }
 
 export async function findReadyAttempt(studentId: string) {
@@ -90,91 +86,101 @@ export async function findReadyAttempt(studentId: string) {
   return a?.id ?? null;
 }
 
-type QueueResult = { queued: boolean; reason?: string };
-
-/**
- * Start generating a test in the background (returns immediately).
- * Skips if one is ready/running, the student can't test yet, or limits are hit.
- */
-export function queueTestGeneration(studentId: string): Promise<QueueResult> {
-  return (async (): Promise<QueueResult> => {
-    if (isGenerating(studentId)) return { queued: true };
-    const [an] = await db.select({ result: analyses.result }).from(analyses).where(eq(analyses.studentId, studentId));
-    const core = an?.result.coreSkills ?? [];
-    if (core.length < MIN_CORE_SKILLS) return { queued: false, reason: 'Add more skills to your resume to unlock verification.' };
-    if (await findReadyAttempt(studentId)) return { queued: false, reason: 'ready' };
-
-    const submitted = await db
-      .select({ at: testAttempts.submittedAt })
-      .from(testAttempts)
-      .where(and(eq(testAttempts.studentId, studentId), inArray(testAttempts.status, ['submitted', 'flagged'])));
-    const retake = retakeStatus(submitted.map((s) => s.at!).filter(Boolean));
-    if (!retake.allowed) return { queued: false, reason: retake.reason };
-
-    const key = `testgen:${studentId}`;
-    if (isLimited(key, GENERATIONS_PER_HOUR, 3600_000)) {
-      return { queued: false, reason: 'Test generation limit reached (3 per hour). Please try again later.' };
-    }
-    record(key);
-    const split = questionSplit(core.length);
-    const total = split.reduce((a, b) => a + b, 0);
-    jobs.set(studentId, { done: 0, total, error: null, running: true });
-    void generate(studentId, core.slice(0, split.length), split).catch((err) => {
-      const j = jobs.get(studentId);
-      if (j) Object.assign(j, { running: false, error: err instanceof Error ? err.message : 'Could not prepare your test.' });
-      console.error('[testgen] failed:', err instanceof Error ? err.message : err);
-    });
-    return { queued: true };
-  })();
+/** Progress of a test being prepared right now (read from the DB), or null. */
+export async function generationProgress(studentId: string): Promise<GenerationProgress | null> {
+  const [a] = await db
+    .select({ progress: testAttempts.progress, total: testAttempts.totalQ, at: testAttempts.generatedAt })
+    .from(testAttempts)
+    .where(and(eq(testAttempts.studentId, studentId), eq(testAttempts.status, 'generating')));
+  if (!a || Date.now() - a.at.getTime() > STALE_GENERATION_MS) return null;
+  return { done: a.progress, total: a.total, error: null };
 }
 
-async function generate(studentId: string, skills: string[], split: number[], deps: Deps = groqDeps) {
-  // Never reuse a question this student has already seen.
-  const seen = await db
-    .select({ h: testQuestions.questionHash })
-    .from(testQuestions)
-    .innerJoin(testAttempts, eq(testAttempts.id, testQuestions.attemptId))
-    .where(eq(testAttempts.studentId, studentId));
-  const seenHashes = new Set(seen.map((s) => s.h));
-  const plan = difficultyPlan(split);
-  const job = jobs.get(studentId)!;
+export type PrepareResult = { status: 'ready' | 'generating' | 'blocked'; reason?: string };
 
-  // At most 2 skills in parallel (Groq free-tier limits).
-  const results: Question[][] = new Array(skills.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < skills.length) {
-      const i = next++;
-      results[i] = await makeVerifiedQuestions(skills[i], plan[i], seenHashes, deps, () => job.done++);
-    }
-  };
-  await Promise.all([worker(), worker()]);
+/**
+ * Make sure the student has a ready test. Generates it inside this request when
+ * needed (2 skills in parallel, Groq limits). Safe to call repeatedly.
+ */
+export async function prepareTest(studentId: string, deps: Deps = groqDeps): Promise<PrepareResult> {
+  const [an] = await db.select({ result: analyses.result }).from(analyses).where(eq(analyses.studentId, studentId));
+  const core = an?.result.coreSkills ?? [];
+  if (core.length < MIN_CORE_SKILLS) return { status: 'blocked', reason: 'Add more skills to your resume to unlock verification.' };
+  if (await findReadyAttempt(studentId)) return { status: 'ready' };
+  if (await generationProgress(studentId)) return { status: 'generating' };
 
-  // Shuffle question order and options server-side for this attempt.
-  const all = shuffle(results.flat()).map(shuffleOptions);
-  await db.transaction(async (tx) => {
-    const [a] = await tx
-      .insert(testAttempts)
-      .values({
-        studentId,
-        status: 'ready',
-        totalQ: all.length,
-        skills: skills.map((s, i) => ({ skill: s, correct: 0, total: split[i], scorePct: 0, verified: false })),
-      })
-      .returning({ id: testAttempts.id });
-    await tx.insert(testQuestions).values(
-      all.map((q, idx) => ({
-        attemptId: a.id,
-        idx,
-        skill: q.skill,
-        difficulty: q.difficulty,
-        question: q.question,
-        options: q.options,
-        correctIndex: q.correctIndex,
-        explanation: q.explanation,
-        questionHash: questionHash(q),
-      })),
-    );
-  });
-  jobs.set(studentId, { done: job.total, total: job.total, error: null, running: false });
+  const submitted = await db
+    .select({ at: testAttempts.submittedAt })
+    .from(testAttempts)
+    .where(and(eq(testAttempts.studentId, studentId), inArray(testAttempts.status, ['submitted', 'flagged'])));
+  const retake = retakeStatus(submitted.map((s) => s.at!).filter(Boolean));
+  if (!retake.allowed) return { status: 'blocked', reason: retake.reason };
+
+  const key = `testgen:${studentId}`;
+  if (await isLimited(key, GENERATIONS_PER_HOUR, 3600_000)) {
+    return { status: 'blocked', reason: 'Test generation limit reached (3 per hour). Please try again later.' };
+  }
+  await record(key, 3600_000);
+
+  const split = questionSplit(core.length);
+  const skills = core.slice(0, split.length);
+  const total = split.reduce((a, b) => a + b, 0);
+  // The 'generating' row is the lock + progress record.
+  const [lock] = await db
+    .insert(testAttempts)
+    .values({
+      studentId,
+      status: 'generating',
+      totalQ: total,
+      progress: 0,
+      skills: skills.map((s, i) => ({ skill: s, correct: 0, total: split[i], scorePct: 0, verified: false })),
+    })
+    .returning({ id: testAttempts.id });
+
+  try {
+    const seen = await db
+      .select({ h: testQuestions.questionHash })
+      .from(testQuestions)
+      .innerJoin(testAttempts, eq(testAttempts.id, testQuestions.attemptId))
+      .where(eq(testAttempts.studentId, studentId));
+    const seenHashes = new Set(seen.map((x) => x.h));
+    const plan = difficultyPlan(split);
+    let done = 0;
+    const results: Question[][] = new Array(skills.length);
+    let next = 0;
+    const worker = async () => {
+      while (next < skills.length) {
+        const i = next++;
+        results[i] = await makeVerifiedQuestions(skills[i], plan[i], seenHashes, deps, () => {
+          done++;
+        });
+        await db.update(testAttempts).set({ progress: done }).where(eq(testAttempts.id, lock.id));
+      }
+    };
+    await Promise.all([worker(), worker()]);
+
+    // Shuffle question order and options server-side for this attempt.
+    const all = shuffle(results.flat()).map(shuffleOptions);
+    await dbTx().transaction(async (tx) => {
+      await tx.insert(testQuestions).values(
+        all.map((q, idx) => ({
+          attemptId: lock.id,
+          idx,
+          skill: q.skill,
+          difficulty: q.difficulty,
+          question: q.question,
+          options: q.options,
+          correctIndex: q.correctIndex,
+          explanation: q.explanation,
+          questionHash: questionHash(q),
+        })),
+      );
+      await tx.update(testAttempts).set({ status: 'ready', progress: all.length, generatedAt: new Date() }).where(eq(testAttempts.id, lock.id));
+    });
+    return { status: 'ready' };
+  } catch (err) {
+    await db.delete(testAttempts).where(eq(testAttempts.id, lock.id));
+    console.error('[testgen] failed:', err instanceof Error ? err.message : err);
+    throw new Error('Your test could not be prepared right now. Please try again in a minute.');
+  }
 }

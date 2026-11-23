@@ -1,0 +1,5 @@
+# Not needed on Vercel (seed/fixture data is used locally only)
+tests
+scripts/fixtures
+scripts/tmp-*
+*.log

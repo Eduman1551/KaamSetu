@@ -4,6 +4,7 @@ import UploadZone from './UploadZone';
 import ProgressBridge, { type Step } from './ProgressBridge';
 import Results from './Results';
 import type { AnalysisResult, ProgressEvent } from '@/lib/types';
+import { fetcher } from '@/lib/fetcher';
 
 type Phase = 'idle' | 'analyzing' | 'results';
 
@@ -18,11 +19,13 @@ interface Props {
   initialResult: AnalysisResult | null;
   /** Called when a new analysis has been saved. */
   onDone?: (r: AnalysisResult) => void;
+  /** True when the server says an analysis for this student is still running. */
+  runningOnServer?: boolean;
 }
 
 /** Upload → live progress (SSE) → results. Uploading again replaces the saved result. */
-export default function AnalysisFlow({ initialResult, onDone }: Props) {
-  const [phase, setPhase] = useState<Phase>(initialResult ? 'results' : 'idle');
+export default function AnalysisFlow({ initialResult, onDone, runningOnServer = false }: Props) {
+  const [phase, setPhase] = useState<Phase>(runningOnServer ? 'analyzing' : initialResult ? 'results' : 'idle');
   const [file, setFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);
@@ -43,6 +46,48 @@ export default function AnalysisFlow({ initialResult, onDone }: Props) {
   }, [phase, runError]);
 
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  /**
+   * Recovery path: if the live stream drops (serverless timeouts, flaky Wi-Fi) the server
+   * still finishes and saves. Poll the stored run status every 2 s and load the result.
+   */
+  const recover = useCallback(async () => {
+    setSteps((prev) => [
+      ...prev.filter((s) => s.id !== 'recover'),
+      { id: 'recover', label: 'Connection dropped. Still working on the server, checking every 2 seconds…', status: 'active' },
+    ]);
+    for (let i = 0; i < 200; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const { run } = await fetcher('/api/student/analysis-status');
+        if (run?.status === 'done') {
+          const d = await fetcher('/api/student/dashboard');
+          if (d.analysis) {
+            setPct(100);
+            setResult(d.analysis);
+            setPhase('results');
+            onDone?.(d.analysis);
+            setTimeout(scrollTop, 450);
+            return;
+          }
+        }
+        if (run?.status === 'failed') throw new Error(run.error ?? 'The analysis failed. Please try again.');
+        if (!run) throw new Error('The analysis could not be found. Please try again.');
+      } catch (e) {
+        if ((e as Error).message && !/fetch|network/i.test((e as Error).message)) {
+          setRunError((e as Error).message);
+          return;
+        }
+      }
+    }
+    setRunError('The analysis is taking too long. Please refresh the page in a minute.');
+  }, [onDone]);
+
+  // Opened the page while a run is still going on the server: wait for it.
+  useEffect(() => {
+    if (runningOnServer) void recover();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const analyse = useCallback(async () => {
     if (!file) return;
@@ -100,14 +145,24 @@ export default function AnalysisFlow({ initialResult, onDone }: Props) {
           }
         }
       }
-      if (!gotResult) throw new Error('The connection closed before the analysis finished.');
+      if (!gotResult) {
+        // Stream ended early: the server keeps going, so recover by polling.
+        await recover();
+        return;
+      }
     } catch (err) {
       if (controller.signal.aborted) return;
-      setRunError(err instanceof Error ? err.message : 'Something went wrong.');
+      const msg = err instanceof Error ? err.message : 'Something went wrong.';
+      // Network-level failures (not an error event from the server): try to recover.
+      if (err instanceof TypeError || /network|fetch|load failed/i.test(msg)) {
+        await recover();
+        return;
+      }
+      setRunError(msg);
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
     }
-  }, [file, onDone]);
+  }, [file, onDone, recover]);
 
   return (
     <div ref={topRef} className="scroll-mt-4">
